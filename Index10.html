@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Voice Taxi Pro V10</title>
+<style>
+:root{--bg:#eef2f7;--card:#fff;--soft:#f3f4f6;--text:#111827;--muted:#6b7280;--border:#d1d5db;--btn:#111}
+.dark{--bg:#0f172a;--card:#111827;--soft:#1f2937;--text:#f9fafb;--muted:#cbd5e1;--border:#334155;--btn:#2563eb}
+body{font-family:Arial,sans-serif;background:var(--bg);margin:0;padding:14px;color:var(--text)}
+.app{max-width:650px;margin:auto;background:var(--card);border-radius:24px;padding:18px;box-shadow:0 8px 30px #0003}
+h1{text-align:center;font-size:32px;margin:10px 0 18px}
+input,select,textarea,button{width:100%;padding:13px;margin:7px 0;border-radius:14px;border:1px solid var(--border);font-size:16px;box-sizing:border-box}
+button{border:0;background:var(--btn);color:white;font-weight:bold}
+.card{background:var(--soft);border-radius:18px;padding:14px;margin:14px 0}
+.item{background:var(--card);border-radius:14px;padding:11px;margin:9px 0;border:1px solid var(--border)}
+.btnRed{background:#b00020}.btnGreen{background:#12823b}.btnBlue{background:#2563eb}.btnGray{background:#4b5563}.btnMic{background:#7c3aed}
+.panel,.quick{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:10px;text-align:center}
+.box b{font-size:20px}.hora{font-size:21px;font-weight:bold}.small{font-size:13px;color:var(--muted)}.total{font-size:19px;font-weight:bold}
+</style>
+</head>
+<body>
+<div class="app">
+<h1>🎙️🚕 Voice Taxi Pro V10</h1>
+<button class="btnGray" onclick="modoOscuro()">🌙 Modo oscuro/claro</button>
+
+<div class="card">
+<h3>🎤 Voz Pro</h3>
+<button class="btnMic" onclick="vozAI()">🎙️ Añadir servicio por voz</button>
+<button class="btnMic" onclick="vozGastoAI()">🎙️ Añadir gasto por voz</button>
+<p class="small">Ejemplo: “Aeropuerto a Son Bou 32 visa”</p>
+</div>
+
+<div class="card">
+<h3>⚡ Accesos rápidos Menorca</h3>
+<div class="quick">
+<button onclick="setOrigen('Aeropuerto')">✈️ Aeropuerto</button>
+<button onclick="setOrigen('Puerto Mahón')">🚢 P. Mahón</button>
+<button onclick="setOrigen('Puerto Ciutadella')">🚢 P. Ciutadella</button>
+<button onclick="setDestino('Son Bou')">🌊 Son Bou</button>
+<button onclick="setDestino('Cala Galdana')">🌴 Cala Galdana</button>
+<button onclick="setDestino('Mahón')">🏙️ Mahón</button>
+</div>
+</div>
+
+<div class="card">
+<h3>📌 Panel</h3>
+<div class="panel">
+<div class="box">Hoy<br><b id="countDia">0</b></div>
+<div class="box">Semana<br><b id="countSemana">0</b></div>
+<div class="box">Mes<br><b id="countMes">0</b></div>
+</div>
+</div>
+
+<div class="card">
+<h3>➕ Servicio manual</h3>
+<input id="origen" placeholder="Origen">
+<input id="destino" placeholder="Destino">
+<input id="importe" type="number" step="0.01" placeholder="Importe €">
+<input id="propina" type="number" step="0.01" placeholder="Propina € opcional">
+<select id="pago">
+<option>Efectivo</option><option>Visa</option><option>Bizum</option><option>Bonoweb</option><option>Bono Vuelo ✈️</option><option>Factura / Empresa</option>
+</select>
+<textarea id="nota" placeholder="Notas"></textarea>
+<button onclick="addServicioManual()">Añadir servicio</button>
+</div>
+
+<div class="card">
+<h3>⛽ Gastos</h3>
+<input id="gastoNombre" placeholder="Concepto gasto">
+<input id="gastoImporte" type="number" step="0.01" placeholder="Importe gasto €">
+<button class="btnGray" onclick="addGastoManual()">Añadir gasto</button>
+<div id="listaGastos"></div>
+</div>
+
+<div class="card"><h3>📊 Diario</h3><div id="resumenDia"></div><button class="btnBlue" onclick="copiarDia()">Copiar diario</button><button class="btnGreen" onclick="whatsappDia()">WhatsApp diario</button></div>
+<div class="card"><h3>📅 Semanal</h3><div id="resumenSemana"></div><button class="btnBlue" onclick="copiarSemana()">Copiar semanal</button></div>
+<div class="card"><h3>🗓️ Mensual</h3><div id="resumenMes"></div><button class="btnBlue" onclick="copiarMes()">Copiar mensual</button></div>
+<div class="card"><h3>📋 Servicios</h3><div id="listaServicios"></div></div>
+
+<button class="btnGreen" onclick="cerrarDia()">Cerrar día</button>
+<button class="btnRed" onclick="borrarTodo()">Borrar todo</button>
+
+<div class="card"><h3>📚 Historial</h3><div id="historialDiv"></div></div>
+</div>
+
+<script>
+let servicios=JSON.parse(localStorage.getItem("voiceTaxi_servicios"))||[];
+let gastos=JSON.parse(localStorage.getItem("voiceTaxi_gastos"))||[];
+let historial=JSON.parse(localStorage.getItem("voiceTaxi_historial"))||[];
+if(localStorage.getItem("voiceTaxi_modo")==="dark")document.body.classList.add("dark");
+
+function guardar(){localStorage.setItem("voiceTaxi_servicios",JSON.stringify(servicios));localStorage.setItem("voiceTaxi_gastos",JSON.stringify(gastos));localStorage.setItem("voiceTaxi_historial",JSON.stringify(historial));pintar()}
+function euro(n){return Number(n||0).toFixed(2)+" €"}
+function hoy(){return new Date().toLocaleDateString("es-ES")}
+function hora(){return new Date().toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"})}
+function modoOscuro(){document.body.classList.toggle("dark");localStorage.setItem("voiceTaxi_modo",document.body.classList.contains("dark")?"dark":"light")}
+function bip(){try{let a=new AudioContext(),o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.frequency.value=950;g.gain.value=.08;o.start();setTimeout(()=>{o.stop();a.close()},120)}catch(e){} if(navigator.vibrate)navigator.vibrate(80)}
+function setOrigen(v){origen.value=v;bip()}
+function setDestino(v){destino.value=v;bip()}
+
+function parseFechaES(f){let p=f.split("/");return new Date(p[2],p[1]-1,p[0])}
+function lunesActual(){let d=new Date(),dia=d.getDay(),diff=d.getDate()-(dia===0?6:dia-1),l=new Date(d.setDate(diff));l.setHours(0,0,0,0);return l}
+function esSemana(f){let fecha=parseFechaES(f),l=lunesActual(),dom=new Date(l);dom.setDate(l.getDate()+6);dom.setHours(23,59,59,999);return fecha>=l&&fecha<=dom}
+function esMes(f){let fecha=parseFechaES(f),d=new Date();return fecha.getMonth()===d.getMonth()&&fecha.getFullYear()===d.getFullYear()}
+
+function detectarPago(t){if(t.includes("visa")||t.includes("tarjeta"))return"Visa";if(t.includes("bizum"))return"Bizum";if(t.includes("bonoweb")||t.includes("bono web"))return"Bonoweb";if(t.includes("vuelo")||t.includes("bono vuelo"))return"Bono Vuelo ✈️";if(t.includes("factura")||t.includes("empresa"))return"Factura / Empresa";return"Efectivo"}
+function numeroVoz(t){t=t.replace(",",".");let m=t.match(/(\d+(\.\d+)?)/);return m?parseFloat(m[1]):0}
+function limpiarTexto(t){return t.toLowerCase().replace("servicio","").replace("añadir","").replace("euros","").replace("euro","").replace("visa","").replace("tarjeta","").replace("bizum","").replace("efectivo","").replace("bonoweb","").replace("bono web","").replace("bono vuelo","").replace("vuelo","").replace("factura","").replace("empresa","").replace(/(\d+(\.\d+)?)/,"").trim()}
+function escuchar(cb){let SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){alert("Este navegador no permite voz aquí. Prueba Safari actualizado.");return}let r=new SR();r.lang="es-ES";r.interimResults=false;r.maxAlternatives=1;r.start();r.onresult=e=>cb(e.results[0][0].transcript.toLowerCase());r.onerror=()=>alert("No he podido escuchar bien.")}
+
+function vozAI(){escuchar(t=>{let imp=numeroVoz(t);if(!imp){alert("No entendí el importe");return}let pg=detectarPago(t),limpio=limpiarTexto(t),partes=limpio.split(" a ");let ori=(partes[0]||"").trim(),des=(partes[1]||"").trim();servicios.push({origen:ori,destino:des,importe:imp,propina:0,pago:pg,nota:"Voz Pro: "+t,hora:hora(),fecha:hoy()});guardar();bip();alert("Servicio añadido ✅")})}
+function vozGastoAI(){escuchar(t=>{let imp=numeroVoz(t);if(!imp){alert("No entendí el gasto");return}let concepto=t.replace(/(\d+(\.\d+)?)/,"").replace("euros","").replace("euro","").replace("gasto","").trim();gastos.push({nombre:concepto||"Gasto",importe:imp,hora:hora(),fecha:hoy()});guardar();bip();alert("Gasto añadido ✅")})}
+
+function addServicioManual(){let imp=parseFloat(importe.value);if(!imp||imp<=0){alert("Pon un importe válido");return}servicios.push({origen:origen.value.trim(),destino:destino.value.trim(),importe:imp,propina:parseFloat(propina.value)||0,pago:pago.value,nota:nota.value.trim(),hora:hora(),fecha:hoy()});origen.value="";destino.value="";importe.value="";propina.value="";nota.value="";guardar();bip()}
+function addGastoManual(){let imp=parseFloat(gastoImporte.value);if(!imp||imp<=0){alert("Pon un gasto válido");return}gastos.push({nombre:gastoNombre.value.trim(),importe:imp,hora:hora(),fecha:hoy()});gastoNombre.value="";gastoImporte.value="";guardar();bip()}
+
+function calcular(ss,gg){let total=ss.reduce((a,x)=>a+x.importe,0),propinas=ss.reduce((a,x)=>a+(x.propina||0),0),tg=gg.reduce((a,x)=>a+x.importe,0),trabajador=total*.40,propBruto=total*.60,propFinal=propBruto-tg,pagos={};ss.forEach(s=>pagos[s.pago]=(pagos[s.pago]||0)+s.importe);let efectivo=pagos["Efectivo"]||0,caja=efectivo+propinas-tg;return{total,propinas,tg,trabajador,propBruto,propFinal,pagos,efectivo,caja,servicios:ss.length}}
+function resumen(c){return `<p class="total">Total: ${euro(c.total)}</p><p>🚕 Servicios: <b>${c.servicios}</b></p><p>💵 Caja física: <b>${euro(c.caja)}</b></p><p>👷 40% trabajador: <b>${euro(c.trabajador)}</b></p><p>🏢 60% propietario: <b>${euro(c.propBruto)}</b></p><p>⛽ Gastos: <b>-${euro(c.tg)}</b></p><p>✅ Propietario final: <b>${euro(c.propFinal)}</b></p><hr><b>💳 Métodos:</b>${Object.keys(c.pagos).map(p=>`<p>${p}: <b>${euro(c.pagos[p])}</b></p>`).join("")||"<p>No hay pagos.</p>"}`}
+function datosSemana(){let hs=historial.filter(h=>esSemana(h.fecha));return calcular([...servicios,...hs.map(h=>({importe:h.total,propina:h.propinas||0,pago:"Cierres anteriores"}))],[...gastos,...hs.map(h=>({importe:h.gastos||0}))])}
+function datosMes(){let hm=historial.filter(h=>esMes(h.fecha));return calcular([...servicios,...hm.map(h=>({importe:h.total,propina:h.propinas||0,pago:"Cierres anteriores"}))],[...gastos,...hm.map(h=>({importe:h.gastos||0}))])}
+function texto(t,c){return `🚕 ${t} ${hoy()}\nServicios: ${c.servicios}\nTotal: ${euro(c.total)}\nCaja física: ${euro(c.caja)}\n40% trabajador: ${euro(c.trabajador)}\n60% propietario: ${euro(c.propBruto)}\nGastos: -${euro(c.tg)}\nPropietario final: ${euro(c.propFinal)}`}
+function copiar(x){navigator.clipboard.writeText(x).then(()=>alert("Copiado"))}
+function copiarDia(){copiar(texto("CIERRE DIARIO",calcular(servicios,gastos)))}
+function copiarSemana(){copiar(texto("RESUMEN SEMANAL",datosSemana()))}
+function copiarMes(){copiar(texto("RESUMEN MENSUAL",datosMes()))}
+function whatsappDia(){window.open("https://wa.me/?text="+encodeURIComponent(texto("CIERRE DIARIO",calcular(servicios,gastos))),"_blank")}
+
+function pintar(){let d=calcular(servicios,gastos),s=datosSemana(),m=datosMes();resumenDia.innerHTML=resumen(d);resumenSemana.innerHTML=resumen(s);resumenMes.innerHTML=resumen(m);countDia.innerText=servicios.length;countSemana.innerText=s.servicios;countMes.innerText=m.servicios;listaServicios.innerHTML=servicios.length?servicios.map((x,i)=>`<div class="item"><div class="hora">🕒 ${x.hora}</div><b>${euro(x.importe)}</b> · ${x.pago}<br>${x.origen||""}${x.destino?" → "+x.destino:""}<br><span class="small">${x.nota||""}</span><button class="btnRed" onclick="delServicio(${i})">Eliminar</button></div>`).join(""):"<p>No hay servicios.</p>";listaGastos.innerHTML=gastos.length?gastos.map((g,i)=>`<div class="item"><b>${g.hora}</b> · ${g.nombre||"Gasto"}: ${euro(g.importe)}<button class="btnRed" onclick="delGasto(${i})">Eliminar gasto</button></div>`).join(""):"<p>No hay gastos.</p>";historialDiv.innerHTML=historial.length?historial.map(h=>`<div class="item"><b>${h.fecha}</b><br>Total: ${euro(h.total)}<br>Gastos: ${euro(h.gastos)}<br>Propietario final: ${euro(h.propietarioFinal)}</div>`).join(""):"<p>No hay cierres.</p>"}
+function delServicio(i){servicios.splice(i,1);guardar()}
+function delGasto(i){gastos.splice(i,1);guardar()}
+function cerrarDia(){if(!servicios.length){alert("No hay servicios");return}let c=calcular(servicios,gastos);historial.unshift({fecha:hoy(),total:c.total,propinas:c.propinas,caja:c.caja,trabajador:c.trabajador,propietarioBruto:c.propBruto,gastos:c.tg,propietarioFinal:c.propFinal});servicios=[];gastos=[];guardar();bip();alert("Día cerrado")}
+function borrarTodo(){if(confirm("¿Borrar todo?")){servicios=[];gastos=[];historial=[];guardar()}}
+pintar();
+</script>
+</body>
+</html>
