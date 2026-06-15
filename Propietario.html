@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Taxi Propietario</title>
+<style>
+:root{--bg:#eef2f7;--card:#fff;--soft:#f3f4f6;--text:#111827;--muted:#6b7280;--border:#d1d5db;--btn:#111}
+.dark{--bg:#0f172a;--card:#111827;--soft:#1f2937;--text:#f9fafb;--muted:#cbd5e1;--border:#334155;--btn:#2563eb}
+body{font-family:Arial,sans-serif;background:var(--bg);margin:0;padding:14px;color:var(--text)}
+.app{max-width:620px;margin:auto;background:var(--card);border-radius:22px;padding:18px;box-shadow:0 8px 30px #0003}
+h1{text-align:center;font-size:32px;margin:10px 0 18px}
+input,select,textarea,button{width:100%;padding:13px;margin:7px 0;border-radius:13px;border:1px solid var(--border);font-size:16px;box-sizing:border-box}
+button{border:0;background:var(--btn);color:white;font-weight:bold}
+.card{background:var(--soft);border-radius:18px;padding:14px;margin:14px 0}
+.item{background:var(--card);border-radius:14px;padding:11px;margin:9px 0;border:1px solid var(--border)}
+.btnRed{background:#b00020}.btnGreen{background:#12823b}.btnBlue{background:#2563eb}.btnGray{background:#4b5563}
+.total{font-size:19px;font-weight:bold}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+hr{border:0;border-top:1px solid var(--border);margin:12px 0}
+</style>
+</head>
+<body>
+<div class="app">
+<h1>🏢 Taxi Propietario</h1>
+<button class="btnGray" onclick="modoOscuro()">🌙 Modo oscuro/claro</button>
+
+<div class="card">
+<h3>➕ Añadir ingreso</h3>
+<input id="origen" placeholder="Origen">
+<input id="destino" placeholder="Destino">
+<input id="importe" type="number" step="0.01" placeholder="Importe €">
+<input id="propina" type="number" step="0.01" placeholder="Propina € opcional">
+<select id="pago">
+<option>Efectivo</option>
+<option>Visa</option>
+<option>Bizum</option>
+<option>Bonoweb</option>
+<option>Bono Vuelo ✈️</option>
+<option>Factura / Empresa</option>
+</select>
+<textarea id="nota" placeholder="Notas"></textarea>
+<button onclick="addIngreso()">Añadir ingreso</button>
+</div>
+
+<div class="card">
+<h3>⛽ Gastos</h3>
+<input id="gastoNombre" placeholder="Concepto gasto">
+<input id="gastoImporte" type="number" step="0.01" placeholder="Importe gasto €">
+<button class="btnGray" onclick="addGasto()">Añadir gasto</button>
+<div id="listaGastos"></div>
+</div>
+
+<div class="card"><h3>📊 Resumen actual</h3><div id="resumen"></div><button class="btnBlue" onclick="copiar()">Copiar resumen</button><button class="btnGreen" onclick="whatsapp()">Enviar por WhatsApp</button></div>
+
+<div class="card"><h3>📋 Ingresos</h3><div id="listaIngresos"></div></div>
+
+<button class="btnGreen" onclick="cerrar()">Cerrar día y guardar historial</button>
+<button class="btnRed" onclick="borrarTodo()">Borrar todo</button>
+
+<div class="card"><h3>📚 Historial</h3><div id="historialDiv"></div></div>
+</div>
+
+<script>
+let ingresos=JSON.parse(localStorage.getItem("propIngresos"))||[];
+let gastos=JSON.parse(localStorage.getItem("propGastos"))||[];
+let historial=JSON.parse(localStorage.getItem("propHistorial"))||[];
+if(localStorage.getItem("propModo")==="dark")document.body.classList.add("dark");
+
+function guardar(){
+ localStorage.setItem("propIngresos",JSON.stringify(ingresos));
+ localStorage.setItem("propGastos",JSON.stringify(gastos));
+ localStorage.setItem("propHistorial",JSON.stringify(historial));
+ pintar();
+}
+function euro(n){return Number(n||0).toFixed(2)+" €"}
+function hoy(){return new Date().toLocaleDateString("es-ES")}
+function hora(){return new Date().toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"})}
+function modoOscuro(){document.body.classList.toggle("dark");localStorage.setItem("propModo",document.body.classList.contains("dark")?"dark":"light")}
+
+function addIngreso(){
+ let imp=parseFloat(importe.value);
+ if(!imp||imp<=0){alert("Pon un importe válido");return}
+ ingresos.push({origen:origen.value,destino:destino.value,importe:imp,propina:parseFloat(propina.value)||0,pago:pago.value,nota:nota.value,hora:hora(),fecha:hoy()});
+ origen.value="";destino.value="";importe.value="";propina.value="";nota.value="";
+ guardar();
+}
+function addGasto(){
+ let imp=parseFloat(gastoImporte.value);
+ if(!imp||imp<=0){alert("Pon un gasto válido");return}
+ gastos.push({nombre:gastoNombre.value,importe:imp,hora:hora(),fecha:hoy()});
+ gastoNombre.value="";gastoImporte.value="";
+ guardar();
+}
+function calcular(){
+ let total=ingresos.reduce((a,x)=>a+x.importe,0);
+ let propinas=ingresos.reduce((a,x)=>a+(x.propina||0),0);
+ let totalGastos=gastos.reduce((a,x)=>a+x.importe,0);
+ let beneficio=total-totalGastos;
+ let pagos={};
+ ingresos.forEach(x=>pagos[x.pago]=(pagos[x.pago]||0)+x.importe);
+ let efectivo=pagos["Efectivo"]||0;
+ let caja=efectivo+propinas-totalGastos;
+ return {total,propinas,totalGastos,beneficio,pagos,efectivo,caja,servicios:ingresos.length};
+}
+function resumenHTML(c){
+ return `<p class="total">Total facturado: ${euro(c.total)}</p>
+ <p>🚕 Servicios: <b>${c.servicios}</b></p>
+ <p>💵 Caja física aprox: <b>${euro(c.caja)}</b></p>
+ <p>💶 Efectivo: <b>${euro(c.efectivo)}</b></p>
+ <p>🎁 Propinas aparte: <b>${euro(c.propinas)}</b></p>
+ <p>⛽ Gastos: <b>-${euro(c.totalGastos)}</b></p>
+ <p>✅ Beneficio real: <b>${euro(c.beneficio)}</b></p><hr>
+ <b>💳 Métodos de pago:</b>
+ ${Object.keys(c.pagos).length?Object.keys(c.pagos).map(p=>`<p>${p}: <b>${euro(c.pagos[p])}</b></p>`).join(""):"<p>No hay pagos.</p>"}`;
+}
+function texto(){
+ let c=calcular();
+ return `🏢 TAXI PROPIETARIO ${hoy()}
+Servicios: ${c.servicios}
+Total facturado: ${euro(c.total)}
+Caja física aprox: ${euro(c.caja)}
+Efectivo: ${euro(c.efectivo)}
+Propinas: ${euro(c.propinas)}
+Gastos: -${euro(c.totalGastos)}
+Beneficio real: ${euro(c.beneficio)}`;
+}
+function copiar(){navigator.clipboard.writeText(texto()).then(()=>alert("Resumen copiado"))}
+function whatsapp(){window.open("https://wa.me/?text="+encodeURIComponent(texto()),"_blank")}
+
+function pintar(){
+ let c=calcular();
+ resumen.innerHTML=resumenHTML(c);
+ listaIngresos.innerHTML=ingresos.length?ingresos.map((x,i)=>`<div class="item"><b>🕒 ${x.hora}</b><br>${euro(x.importe)} · ${x.pago}<br>${x.origen||""}${x.destino?" → "+x.destino:""}<br>🎁 Propina: ${euro(x.propina||0)}<br><small>${x.nota||""}</small><button class="btnRed" onclick="delIngreso(${i})">Eliminar</button></div>`).join(""):"<p>No hay ingresos.</p>";
+ listaGastos.innerHTML=gastos.length?gastos.map((g,i)=>`<div class="item"><b>${g.hora}</b> · ${g.nombre||"Gasto"}: ${euro(g.importe)}<button class="btnRed" onclick="delGasto(${i})">Eliminar gasto</button></div>`).join(""):"<p>No hay gastos.</p>";
+ historialDiv.innerHTML=historial.length?historial.map(h=>`<div class="item"><b>${h.fecha}</b><br>Total: ${euro(h.total)}<br>Gastos: ${euro(h.gastos)}<br>Beneficio: ${euro(h.beneficio)}</div>`).join(""):"<p>No hay cierres guardados.</p>";
+}
+function delIngreso(i){ingresos.splice(i,1);guardar()}
+function delGasto(i){gastos.splice(i,1);guardar()}
+function cerrar(){
+ if(!ingresos.length){alert("No hay ingresos para cerrar");return}
+ let c=calcular();
+ historial.unshift({fecha:hoy(),total:c.total,propinas:c.propinas,gastos:c.totalGastos,beneficio:c.beneficio,caja:c.caja});
+ ingresos=[];gastos=[];guardar();alert("Día cerrado")
+}
+function borrarTodo(){
+ if(confirm("¿Borrar ingresos, gastos e historial?")){
+  ingresos=[];gastos=[];historial=[];guardar();
+ }
+}
+pintar();
+</script>
+</body>
+</html>
