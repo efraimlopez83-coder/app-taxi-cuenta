@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#2563eb" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <title>Taxi Menorca - Cuentas</title>
+  <style>
+    :root{--bg:#f3f4f6;--card:#fff;--text:#111827;--muted:#6b7280;--blue:#2563eb;--red:#dc2626;--green:#059669;--border:#d1d5db}
+    *{box-sizing:border-box} body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;background:var(--bg);color:var(--text);padding:16px 14px 90px}
+    h1{font-size:28px;margin:8px 0 14px} h2{font-size:22px;margin:0 0 14px}.card{background:var(--card);border-radius:22px;padding:16px;margin:14px 0;box-shadow:0 8px 24px rgba(0,0,0,.06)}
+    label{font-weight:700;display:block;margin:10px 0 6px} input,textarea,select{width:100%;font-size:20px;border:1px solid var(--border);border-radius:14px;padding:14px;background:white} textarea{min-height:74px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.btn{border:0;border-radius:16px;padding:15px 16px;font-size:20px;font-weight:800;color:#fff;background:var(--blue);width:100%;margin-top:14px}.btn.red{background:var(--red)}.btn.gray{background:#9ca3af;color:#111}.btn.green{background:var(--green)}.tot{font-size:36px;font-weight:900}.small{font-size:15px;color:var(--muted);line-height:1.35}.service{display:grid;grid-template-columns:70px 1fr 90px;gap:8px;align-items:center;border-bottom:1px solid #eee;padding:10px 0}.service b{font-size:18px}.tabs{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #ddd;display:grid;grid-template-columns:1fr 1fr 1fr;z-index:5}.tabs button{padding:14px 6px;border:0;background:#fff;font-size:16px;font-weight:800}.tabs button.active{color:var(--blue)}.hidden{display:none}.row{display:flex;justify-content:space-between;gap:12px;margin:8px 0;font-size:18px}.row strong{font-size:20px}.pill{display:inline-block;background:#eef2ff;color:#1d4ed8;padding:6px 10px;border-radius:999px;font-weight:800}.dangerText{color:#b91c1c;font-weight:800}
+  </style>
+</head>
+<body>
+  <h1>🚕 Taxi Menorca</h1>
+  <div class="card">
+    <h2>Datos del día</h2>
+    <div class="grid"><div><label>Trabajador</label><input id="worker" placeholder="Nombre"></div><div><label>Fecha</label><input id="date" type="date"></div></div>
+    <label>Gastos / combustible (€)</label><input id="expenses" inputmode="decimal" placeholder="0">
+    <label>Notas</label><textarea id="notes" placeholder="Turno, incidencias..."></textarea>
+  </div>
+
+  <section id="screen-day">
+    <div class="card">
+      <h2>Servicios uno por uno</h2>
+      <div class="grid"><div><label>Servicio</label><input id="serviceName" placeholder="MAHON-Mercadal"></div><div><label>Importe</label><input id="amount" inputmode="decimal" placeholder="18,50"></div></div>
+      <button class="btn" id="addBtn">➕ Añadir servicio</button>
+      <p class="small">Al añadir se guarda la hora actual automáticamente. Puedes escribir 18,50 o 18.50.</p>
+      <div style="margin-top:12px">Total servicios: <span class="tot" id="dailyTotal">0,00 €</span></div>
+      <div class="row"><span>Número de servicios:</span><strong id="count">0</strong></div>
+      <div id="servicesList"></div>
+      <div class="grid"><button class="btn gray" id="undoBtn">↩️ Borrar último</button><button class="btn red" id="clearBtn">Borrar servicios</button></div>
+    </div>
+    <div class="card"><h2>Cuentas del día</h2><div class="row"><span>Total bruto</span><strong id="grossDay">0,00 €</strong></div><div class="row"><span>Gastos</span><strong id="expensesDay">0,00 €</strong></div><div class="row"><span>Total neto</span><strong id="netDay">0,00 €</strong></div><div class="row"><span>40% trabajador</span><strong id="worker40">0,00 €</strong></div><div class="row"><span>60% propietario</span><strong id="owner60">0,00 €</strong></div><button class="btn green" id="closeDay">Cerrar día</button></div>
+  </section>
+
+  <section id="screen-week" class="hidden">
+    <div class="card"><h2>Semana lunes a domingo</h2><span class="pill" id="weekLabel"></span><div class="row"><span>Total bruto semana</span><strong id="weekGross">0,00 €</strong></div><div class="row"><span>Gastos semana</span><strong id="weekExpenses">0,00 €</strong></div><div class="row"><span>Total neto semana</span><strong id="weekNet">0,00 €</strong></div><div class="row"><span>40% trabajador</span><strong id="week40">0,00 €</strong></div><div class="row"><span>60% propietario</span><strong id="week60">0,00 €</strong></div><div id="weekDays"></div><button class="btn red" id="closeWeek">Cerrar semana / borrar semana</button></div>
+  </section>
+
+  <section id="screen-history" class="hidden">
+    <div class="card"><h2>Historial de cierres</h2><div id="history"></div><button class="btn red" id="clearHistory">Borrar historial</button></div>
+  </section>
+
+  <div class="tabs"><button id="tabDay" class="active">Día</button><button id="tabWeek">Semana</button><button id="tabHistory">Historial</button></div>
+
+<script>
+const $=id=>document.getElementById(id); const fmt=n=>(Number(n)||0).toLocaleString('es-ES',{style:'currency',currency:'EUR'}); const parse=v=>Number(String(v||'').replace(',','.').replace(/[^0-9.-]/g,''))||0;
+let state=JSON.parse(localStorage.getItem('taxiMenorcaState')||'{"services":[],"closed":[]}');
+function todayISO(){return new Date().toISOString().slice(0,10)} if(!$('date').value)$('date').value=todayISO();
+function save(){state.worker=$('worker').value;state.date=$('date').value;state.expenses=$('expenses').value;state.notes=$('notes').value;localStorage.setItem('taxiMenorcaState',JSON.stringify(state))}
+function load(){ $('worker').value=state.worker||'';$('date').value=state.date||todayISO();$('expenses').value=state.expenses||'';$('notes').value=state.notes||'';render()}
+function add(){const name=$('serviceName').value.trim(); const amount=parse($('amount').value); if(!amount){alert('Pon un importe válido');return} const now=new Date(); state.services.push({name:name||'Servicio',amount,time:now.toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}),date:$('date').value}); $('serviceName').value='';$('amount').value='';save();render();}
+function totalsFor(date){return state.services.filter(s=>s.date===date).reduce((a,s)=>a+s.amount,0)}
+function dayServices(){return state.services.filter(s=>s.date===$('date').value)}
+function weekRange(d){let x=new Date(d+'T12:00:00');let day=(x.getDay()+6)%7;let mon=new Date(x);mon.setDate(x.getDate()-day);let sun=new Date(mon);sun.setDate(mon.getDate()+6);return [mon,sun]}
+function iso(d){return d.toISOString().slice(0,10)}
+function render(){save();let ds=dayServices();let gross=ds.reduce((a,s)=>a+s.amount,0), exp=parse($('expenses').value), net=gross-exp; $('dailyTotal').textContent=fmt(gross);$('count').textContent=ds.length;$('grossDay').textContent=fmt(gross);$('expensesDay').textContent=fmt(exp);$('netDay').textContent=fmt(net);$('worker40').textContent=fmt(net*.4);$('owner60').textContent=fmt(net*.6);$('servicesList').innerHTML=ds.map((s,i)=>`<div class="service"><span>${s.time}</span><b>${s.name}</b><strong>${fmt(s.amount)}</strong></div>`).join(''); renderWeek(); renderHistory();}
+function renderWeek(){let [m,s]=weekRange($('date').value);$('weekLabel').textContent=`${m.toLocaleDateString('es-ES')} - ${s.toLocaleDateString('es-ES')}`;let gross=0;let html='';for(let d=new Date(m);d<=s;d.setDate(d.getDate()+1)){let id=iso(d);let t=totalsFor(id);gross+=t;html+=`<div class="row"><span>${d.toLocaleDateString('es-ES',{weekday:'long',day:'2-digit',month:'2-digit'})}</span><strong>${fmt(t)}</strong></div>`} let exp=parse($('expenses').value);let net=gross-exp;$('weekGross').textContent=fmt(gross);$('weekExpenses').textContent=fmt(exp);$('weekNet').textContent=fmt(net);$('week40').textContent=fmt(net*.4);$('week60').textContent=fmt(net*.6);$('weekDays').innerHTML=html}
+function renderHistory(){ $('history').innerHTML=(state.closed||[]).slice().reverse().map(h=>`<div class="card"><b>${h.type}</b><br>${h.label}<br>Total: <b>${fmt(h.gross)}</b> · Neto: <b>${fmt(h.net)}</b><br>40%: ${fmt(h.p40)} · 60%: ${fmt(h.p60)}</div>`).join('')||'<p class="small">Sin cierres guardados todavía.</p>'}
+function switchTab(name){['day','week','history'].forEach(x=>{$('screen-'+x).classList.toggle('hidden',x!==name);$('tab'+x[0].toUpperCase()+x.slice(1)).classList.toggle('active',x===name)})}
+$('addBtn').onclick=add;$('undoBtn').onclick=()=>{state.services.pop();save();render()};$('clearBtn').onclick=()=>{if(confirm('¿Borrar servicios de este día?')){state.services=state.services.filter(s=>s.date!==$('date').value);save();render()}};$('closeDay').onclick=()=>{let gross=dayServices().reduce((a,s)=>a+s.amount,0), exp=parse($('expenses').value), net=gross-exp;state.closed.push({type:'Cierre diario',label:$('date').value,gross,net,p40:net*.4,p60:net*.6});save();render();alert('Día cerrado y guardado')};$('closeWeek').onclick=()=>{if(!confirm('Esto guarda el cierre semanal y borra los servicios de lunes a domingo.'))return;let [m,s]=weekRange($('date').value);let ids=[];for(let d=new Date(m);d<=s;d.setDate(d.getDate()+1))ids.push(iso(d));let gross=state.services.filter(x=>ids.includes(x.date)).reduce((a,x)=>a+x.amount,0), exp=parse($('expenses').value), net=gross-exp;state.closed.push({type:'Cierre semanal',label:$('weekLabel').textContent,gross,net,p40:net*.4,p60:net*.6});state.services=state.services.filter(x=>!ids.includes(x.date));save();render();alert('Semana cerrada')};$('clearHistory').onclick=()=>{if(confirm('¿Borrar historial?')){state.closed=[];save();render()}};['worker','date','expenses','notes'].forEach(id=>$(id).addEventListener('input',render));$('tabDay').onclick=()=>switchTab('day');$('tabWeek').onclick=()=>switchTab('week');$('tabHistory').onclick=()=>switchTab('history'); if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{}); load();
+</script>
+</body></html>
