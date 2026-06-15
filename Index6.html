@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Taxi Cuentas v15</title>
+<style>
+:root{--bg:#eef2f7;--card:#fff;--soft:#f3f4f6;--text:#111827;--muted:#6b7280;--border:#d1d5db;--btn:#111}
+.dark{--bg:#0f172a;--card:#111827;--soft:#1f2937;--text:#f9fafb;--muted:#cbd5e1;--border:#334155;--btn:#2563eb}
+body{font-family:Arial,sans-serif;background:var(--bg);margin:0;padding:14px;color:var(--text)}
+.app{max-width:600px;margin:auto;background:var(--card);border-radius:22px;padding:18px;box-shadow:0 8px 30px #0003}
+h1{text-align:center;font-size:34px;margin:10px 0 18px}
+input,select,textarea,button{width:100%;padding:13px;margin:7px 0;border-radius:13px;border:1px solid var(--border);font-size:16px;box-sizing:border-box}
+button{border:0;background:var(--btn);color:white;font-weight:bold}
+.card{background:var(--soft);border-radius:18px;padding:14px;margin:14px 0}
+.item{background:var(--card);border-radius:14px;padding:11px;margin:9px 0;border:1px solid var(--border)}
+.btnRed{background:#b00020}.btnGreen{background:#12823b}.btnBlue{background:#2563eb}.btnGray{background:#4b5563}
+.hora{font-size:21px;font-weight:bold}.small{font-size:13px;color:var(--muted)}.total{font-size:19px;font-weight:bold}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.panel{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:10px;text-align:center}
+.box b{font-size:20px}
+hr{border:0;border-top:1px solid var(--border);margin:12px 0}
+</style>
+</head>
+<body>
+<div class="app">
+<h1>🚕 Taxi Cuentas v15</h1>
+<button class="btnGray" onclick="modoOscuro()">🌙 Cambiar modo oscuro/claro</button>
+
+<div class="card">
+<h3>📌 Panel principal</h3>
+<div class="panel">
+<div class="box">Hoy<br><b id="countDia">0</b></div>
+<div class="box">Semana<br><b id="countSemana">0</b></div>
+<div class="box">Mes<br><b id="countMes">0</b></div>
+</div>
+</div>
+
+<div class="card">
+<h3 id="formTitulo">➕ Añadir servicio</h3>
+<input id="origen" placeholder="Origen">
+<input id="destino" placeholder="Destino">
+<input id="importe" type="number" step="0.01" placeholder="Importe servicio €">
+<input id="propina" type="number" step="0.01" placeholder="Propina € opcional">
+<select id="pago">
+<option>Efectivo</option>
+<option>Visa</option>
+<option>Bizum</option>
+<option>Bonoweb</option>
+<option>Bono Vuelo ✈️</option>
+<option>Factura / Empresa</option>
+</select>
+<textarea id="nota" placeholder="Notas opcionales"></textarea>
+<button id="btnGuardar" onclick="addServicio()">Añadir servicio</button>
+<button id="btnCancelar" class="btnGray" onclick="cancelarEdicion()" style="display:none">Cancelar edición</button>
+</div>
+
+<div class="card">
+<h3>⛽ Gastos</h3>
+<input id="gastoNombre" placeholder="Concepto gasto">
+<input id="gastoImporte" type="number" step="0.01" placeholder="Importe gasto €">
+<button class="btnGray" onclick="addGasto()">Añadir gasto</button>
+<div id="listaGastos"></div>
+</div>
+
+<div class="card"><h3>📊 Resumen diario</h3><div id="resumenDia"></div><button class="btnBlue" onclick="copiarDia()">Copiar cierre diario</button></div>
+<div class="card"><h3>📅 Resumen semanal</h3><div id="resumenSemana"></div><button class="btnBlue" onclick="copiarSemana()">Copiar resumen semanal</button></div>
+<div class="card"><h3>🗓️ Resumen mensual</h3><div id="resumenMes"></div><button class="btnBlue" onclick="copiarMes()">Copiar resumen mensual</button></div>
+<div class="card"><h3>📋 Servicios de hoy</h3><div id="listaServicios"></div></div>
+
+<button class="btnGreen" onclick="cerrarDia()">Cerrar día y guardar historial</button>
+<button class="btnRed" onclick="borrarTodo()">Borrar todo</button>
+
+<div class="card"><h3>📚 Historial de cierres</h3><div id="historial"></div></div>
+</div>
+
+<script>
+let servicios=JSON.parse(localStorage.getItem("serviciosTaxiV15"))||[];
+let gastos=JSON.parse(localStorage.getItem("gastosTaxiV15"))||[];
+let historial=JSON.parse(localStorage.getItem("historialTaxiV15"))||[];
+let editando=null;
+if(localStorage.getItem("modoTaxiV15")==="dark")document.body.classList.add("dark");
+
+function guardar(){
+ localStorage.setItem("serviciosTaxiV15",JSON.stringify(servicios));
+ localStorage.setItem("gastosTaxiV15",JSON.stringify(gastos));
+ localStorage.setItem("historialTaxiV15",JSON.stringify(historial));
+ pintar();
+}
+function euro(n){return Number(n||0).toFixed(2)+" €"}
+function hoy(){return new Date().toLocaleDateString("es-ES")}
+function hora(){return new Date().toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"})}
+function modoOscuro(){document.body.classList.toggle("dark");localStorage.setItem("modoTaxiV15",document.body.classList.contains("dark")?"dark":"light")}
+
+function parseFechaES(f){let p=f.split("/");return new Date(p[2],p[1]-1,p[0])}
+function lunesActual(){let d=new Date();let dia=d.getDay();let diff=d.getDate()-(dia===0?6:dia-1);let l=new Date(d.setDate(diff));l.setHours(0,0,0,0);return l}
+function esEstaSemana(f){let fecha=parseFechaES(f),l=lunesActual(),dom=new Date(l);dom.setDate(l.getDate()+6);dom.setHours(23,59,59,999);return fecha>=l&&fecha<=dom}
+function esEsteMes(f){let fecha=parseFechaES(f),d=new Date();return fecha.getMonth()===d.getMonth()&&fecha.getFullYear()===d.getFullYear()}
+
+function limpiar(){
+ origen.value="";destino.value="";importe.value="";propina.value="";nota.value="";
+ editando=null;formTitulo.innerText="➕ Añadir servicio";btnGuardar.innerText="Añadir servicio";btnCancelar.style.display="none";
+}
+function addServicio(){
+ let obj={origen:origen.value.trim(),destino:destino.value.trim(),importe:parseFloat(importe.value),propina:parseFloat(propina.value)||0,pago:pago.value,nota:nota.value.trim(),hora:hora(),fecha:hoy()};
+ if(!obj.importe||obj.importe<=0){alert("Pon un importe válido");return}
+ if(editando!==null){obj.hora=servicios[editando].hora;obj.fecha=servicios[editando].fecha;servicios[editando]=obj}else servicios.push(obj);
+ limpiar();guardar();
+}
+function editarServicio(i){
+ let s=servicios[i];origen.value=s.origen||"";destino.value=s.destino||"";importe.value=s.importe||"";propina.value=s.propina||"";pago.value=s.pago||"Efectivo";nota.value=s.nota||"";
+ editando=i;formTitulo.innerText="✏️ Editando servicio";btnGuardar.innerText="Guardar cambios";btnCancelar.style.display="block";scrollTo({top:0,behavior:"smooth"});
+}
+function cancelarEdicion(){limpiar()}
+function addGasto(){
+ let nombre=gastoNombre.value.trim(),imp=parseFloat(gastoImporte.value);
+ if(!imp||imp<=0){alert("Pon un gasto válido");return}
+ gastos.push({nombre,importe:imp,hora:hora(),fecha:hoy()});
+ gastoNombre.value="";gastoImporte.value="";guardar();
+}
+
+function calcular(ss,gg){
+ let total=ss.reduce((a,x)=>a+x.importe,0),propinas=ss.reduce((a,x)=>a+(x.propina||0),0),tg=gg.reduce((a,x)=>a+x.importe,0);
+ let trabajador=total*.40,propBruto=total*.60,propFinal=propBruto-tg;
+ let pagos={};ss.forEach(s=>pagos[s.pago]=(pagos[s.pago]||0)+s.importe);
+ let efectivo=pagos["Efectivo"]||0,caja=efectivo+propinas-tg;
+ return {total,propinas,tg,trabajador,propBruto,propFinal,pagos,efectivo,caja,servicios:ss.length}
+}
+function resumen(c){
+ return `<p class="total">Total trabajado: ${euro(c.total)}</p>
+ <p>🚕 Servicios: <b>${c.servicios}</b></p>
+ <p>💵 Caja física aproximada: <b>${euro(c.caja)}</b></p>
+ <p>💶 Efectivo: <b>${euro(c.efectivo)}</b></p>
+ <p>🎁 Propinas: <b>${euro(c.propinas)}</b></p>
+ <p>👷 40% trabajador: <b>${euro(c.trabajador)}</b></p>
+ <p>🏢 60% propietario bruto: <b>${euro(c.propBruto)}</b></p>
+ <p>⛽ Gastos: <b>-${euro(c.tg)}</b></p>
+ <p>✅ Propietario final: <b>${euro(c.propFinal)}</b></p><hr>
+ <b>💳 Métodos de pago:</b>${Object.keys(c.pagos).length?Object.keys(c.pagos).map(p=>`<p>${p}: <b>${euro(c.pagos[p])}</b></p>`).join(""):"<p>No hay pagos.</p>"}`;
+}
+function texto(t,c){return `🚕 ${t} ${hoy()}
+Servicios: ${c.servicios}
+Total: ${euro(c.total)}
+Caja física aprox: ${euro(c.caja)}
+Efectivo: ${euro(c.efectivo)}
+Propinas: ${euro(c.propinas)}
+40% trabajador: ${euro(c.trabajador)}
+60% propietario bruto: ${euro(c.propBruto)}
+Gastos: -${euro(c.tg)}
+Propietario final: ${euro(c.propFinal)}`}
+
+function datosSemana(){
+ let hs=historial.filter(h=>esEstaSemana(h.fecha));
+ let ss=[...servicios,...hs.map(h=>({importe:h.total,propina:h.propinas||0,pago:"Cierres anteriores"}))];
+ let gg=[...gastos,...hs.map(h=>({importe:h.gastos||0}))];
+ return calcular(ss,gg);
+}
+function datosMes(){
+ let hm=historial.filter(h=>esEsteMes(h.fecha));
+ let ss=[...servicios,...hm.map(h=>({importe:h.total,propina:h.propinas||0,pago:"Cierres anteriores"}))];
+ let gg=[...gastos,...hm.map(h=>({importe:h.gastos||0}))];
+ return calcular(ss,gg);
+}
+function copiarDia(){navigator.clipboard.writeText(texto("CIERRE DIARIO",calcular(servicios,gastos))).then(()=>alert("Cierre diario copiado"))}
+function copiarSemana(){navigator.clipboard.writeText(texto("RESUMEN SEMANAL",datosSemana())).then(()=>alert("Resumen semanal copiado"))}
+function copiarMes(){navigator.clipboard.writeText(texto("RESUMEN MENSUAL",datosMes())).then(()=>alert("Resumen mensual copiado"))}
+
+function pintar(){
+ let c=calcular(servicios,gastos),s=datosSemana(),m=datosMes();
+ resumenDia.innerHTML=resumen(c);resumenSemana.innerHTML=resumen(s);resumenMes.innerHTML=resumen(m);
+ countDia.innerText=servicios.length;countSemana.innerText=s.servicios;countMes.innerText=m.servicios;
+
+ listaServicios.innerHTML=servicios.length?servicios.map((x,i)=>`<div class="item"><div class="hora">🕒 ${x.hora}</div><b>${euro(x.importe)}</b> · ${x.pago}<br>🎁 Propina: ${euro(x.propina||0)}<br>${x.origen||""}${x.destino?" → "+x.destino:""}<br><span class="small">${x.nota||""}</span><div class="grid"><button class="btnBlue" onclick="editarServicio(${i})">Editar</button><button class="btnRed" onclick="delServicio(${i})">Eliminar</button></div></div>`).join(""):"<p>No hay servicios.</p>";
+ listaGastos.innerHTML=gastos.length?gastos.map((g,i)=>`<div class="item"><b>${g.hora}</b> · ${g.nombre||"Gasto"}: ${euro(g.importe)}<button class="btnRed" onclick="delGasto(${i})">Eliminar gasto</button></div>`).join(""):"<p>No hay gastos.</p>";
+ historial.innerHTML=historial.length?historial.map(h=>`<div class="item"><b>${h.fecha}</b><br>Total: ${euro(h.total)}<br>Propinas: ${euro(h.propinas||0)}<br>Caja: ${euro(h.caja||0)}<br>Trabajador: ${euro(h.trabajador)}<br>Gastos: ${euro(h.gastos)}<br>Propietario final: ${euro(h.propietarioFinal)}</div>`).join(""):"<p>No hay cierres guardados.</p>";
+}
+function delServicio(i){servicios.splice(i,1);guardar()}
+function delGasto(i){gastos.splice(i,1);guardar()}
+function cerrarDia(){
+ if(!servicios.length){alert("No hay servicios");return}
+ let c=calcular(servicios,gastos);
+ historial.unshift({fecha:hoy(),total:c.total,propinas:c.propinas,caja:c.caja,trabajador:c.trabajador,propietarioBruto:c.propBruto,gastos:c.tg,propietarioFinal:c.propFinal});
+ servicios=[];gastos=[];guardar();alert("Día cerrado")
+}
+function borrarTodo(){if(confirm("¿Borrar servicios, gastos e historial?")){servicios=[];gastos=[];historial=[];guardar()}}
+pintar();
+</script>
+</body>
+</html>
