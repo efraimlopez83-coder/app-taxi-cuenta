@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#050816" />
+  <title>Taxi IA Pro V12</title>
+  <style>
+    :root{
+      --bg:#050816;
+      --card:#10172a;
+      --card2:#111827;
+      --text:#f8fafc;
+      --muted:#94a3b8;
+      --line:rgba(255,255,255,.12);
+      --accent:#facc15;
+      --accent2:#22c55e;
+      --danger:#ef4444;
+      --blue:#38bdf8;
+      --shadow:0 18px 45px rgba(0,0,0,.35);
+      --radius:22px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(250,204,21,.18), transparent 28%),
+        radial-gradient(circle at top right, rgba(56,189,248,.14), transparent 30%),
+        var(--bg);
+      color:var(--text);
+      padding:18px;
+      padding-bottom:100px;
+    }
+    .app{max-width:720px;margin:0 auto}
+    header{
+      text-align:center;
+      padding:22px 14px 14px;
+    }
+    .logo{
+      width:86px;height:86px;margin:0 auto 10px;
+      border-radius:24px;
+      background:linear-gradient(135deg,#facc15,#f97316);
+      display:flex;align-items:center;justify-content:center;
+      box-shadow:var(--shadow);
+      color:#111827;
+      font-weight:900;
+      font-size:24px;
+      letter-spacing:-1px;
+    }
+    h1{font-size:30px;margin:8px 0 4px}
+    .subtitle{color:var(--muted);font-size:14px}
+    .tabs{
+      position:sticky;top:0;z-index:10;
+      display:grid;grid-template-columns:repeat(4,1fr);
+      gap:8px;margin:16px 0;
+      background:rgba(5,8,22,.86);
+      backdrop-filter: blur(14px);
+      padding:8px 0;
+    }
+    .tab{
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.06);
+      color:var(--text);
+      border-radius:14px;
+      padding:11px 6px;
+      font-weight:800;
+      font-size:13px;
+    }
+    .tab.active{background:var(--accent);color:#111827;border-color:transparent}
+    .card{
+      background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.04));
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:18px;
+      margin:14px 0;
+      box-shadow:var(--shadow);
+    }
+    h2{margin:0 0 14px;font-size:21px}
+    label{display:block;font-size:13px;color:var(--muted);margin:12px 0 6px}
+    input,select,textarea{
+      width:100%;
+      border:1px solid var(--line);
+      background:rgba(15,23,42,.92);
+      color:var(--text);
+      border-radius:16px;
+      padding:14px;
+      font-size:16px;
+      outline:none;
+    }
+    textarea{min-height:70px;resize:vertical}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+    button{
+      border:0;
+      border-radius:16px;
+      padding:14px 16px;
+      font-size:16px;
+      font-weight:900;
+      cursor:pointer;
+      color:#111827;
+      background:var(--accent);
+      width:100%;
+      margin-top:12px;
+    }
+    .secondary{background:#334155;color:var(--text)}
+    .green{background:var(--accent2);color:#052e16}
+    .blue{background:var(--blue);color:#082f49}
+    .danger{background:var(--danger);color:#fff}
+    .mini{font-size:13px;padding:10px 12px;border-radius:13px;margin-top:8px}
+    .row{
+      display:flex;justify-content:space-between;align-items:center;
+      border-bottom:1px solid var(--line);
+      padding:12px 0;gap:12px
+    }
+    .row:last-child{border-bottom:0}
+    .amount{font-weight:900;color:var(--accent)}
+    .muted{color:var(--muted);font-size:13px}
+    .big{
+      font-size:34px;font-weight:950;letter-spacing:-1px;
+      color:var(--accent);margin:10px 0 4px;
+    }
+    .pill{
+      display:inline-flex;align-items:center;gap:6px;
+      background:rgba(255,255,255,.08);
+      border:1px solid var(--line);
+      border-radius:999px;
+      padding:7px 10px;
+      font-size:12px;
+      color:var(--muted);
+      margin:4px 4px 0 0;
+    }
+    .hidden{display:none}
+    .notice{
+      color:var(--muted);
+      background:rgba(250,204,21,.08);
+      border:1px solid rgba(250,204,21,.22);
+      border-radius:16px;
+      padding:12px;
+      font-size:13px;
+      line-height:1.35;
+    }
+    .route-btns{
+      display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px
+    }
+    .route-btns button{margin:0;font-size:13px;padding:10px;background:#1e293b;color:#fff}
+    @media (max-width:520px){
+      body{padding:12px;padding-bottom:90px}
+      .grid2,.grid3{grid-template-columns:1fr}
+      .tabs{grid-template-columns:repeat(2,1fr)}
+      h1{font-size:27px}
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo">TAXI<br>IA</div>
+    <h1>Taxi IA Pro V12</h1>
+    <div class="subtitle">Servicios · Voz · Sonido · Calculadora · Semana</div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('servicios', this)">🚕 Servicios</button>
+    <button class="tab" onclick="showTab('calculadora', this)">🧮 Calculadora</button>
+    <button class="tab" onclick="showTab('semana', this)">📊 Semana</button>
+    <button class="tab" onclick="showTab('ajustes', this)">⚙️ Ajustes</button>
+  </div>
+
+  <section id="servicios" class="tabContent">
+    <div class="card">
+      <h2>➕ Añadir servicio</h2>
+
+      <div class="grid2">
+        <div>
+          <label>Origen</label>
+          <input id="origen" placeholder="Ej: Aeropuerto">
+        </div>
+        <div>
+          <label>Destino</label>
+          <input id="destino" placeholder="Ej: Mahón">
+        </div>
+      </div>
+
+      <button class="blue" onclick="dictarRuta()">🎤 Dictar origen y destino</button>
+      <div class="muted" id="vozEstado">Puedes decir: “Aeropuerto a Mahón, 25 euros, visa”.</div>
+
+      <div class="grid2">
+        <div>
+          <label>Importe</label>
+          <input id="importe" type="number" step="0.01" placeholder="0,00">
+        </div>
+        <div>
+          <label>Método de pago</label>
+          <select id="pago">
+            <option>Efectivo</option>
+            <option>Visa</option>
+            <option>Bonoweb</option>
+            <option>Bono Vueling</option>
+            <option>Transferencia</option>
+            <option>Otro</option>
+          </select>
+        </div>
+      </div>
+
+      <label>Notas</label>
+      <textarea id="notas" placeholder="Opcional"></textarea>
+
+      <button onclick="addService()">Guardar servicio 🔊</button>
+    </div>
+
+    <div class="card">
+      <h2>📅 Hoy</h2>
+      <div class="big" id="totalHoy">0,00 €</div>
+      <div>
+        <span class="pill">40%: <b id="parte40">0,00 €</b></span>
+        <span class="pill">60%: <b id="parte60">0,00 €</b></span>
+        <span class="pill">Servicios: <b id="numServicios">0</b></span>
+      </div>
+      <div id="listaServicios" style="margin-top:12px"></div>
+      <button class="secondary" onclick="cerrarDia()">Cerrar día</button>
+      <button class="danger" onclick="borrarHoy()">Borrar servicios de hoy</button>
+    </div>
+  </section>
+
+  <section id="calculadora" class="tabContent hidden">
+    <div class="card">
+      <h2>🧮 Calculadora de precio orientativo</h2>
+      <div class="notice">
+        El precio es orientativo. El importe final válido siempre será el que marque el taxímetro oficial.
+      </div>
+
+      <div class="route-btns">
+        <button onclick="rutaRapida('Aeropuerto','Mahón',5)">Aeropuerto → Mahón</button>
+        <button onclick="rutaRapida('Aeropuerto','Ciutadella',46)">Aeropuerto → Ciutadella</button>
+        <button onclick="rutaRapida('Mahón','Fornells',30)">Mahón → Fornells</button>
+        <button onclick="rutaRapida('Mahón','Son Bou',21)">Mahón → Son Bou</button>
+        <button onclick="rutaRapida('Mahón','Cala Galdana',36)">Mahón → Cala Galdana</button>
+        <button onclick="rutaRapida('Ciutadella','Cala Turqueta',14)">Ciutadella → Cala Turqueta</button>
+      </div>
+
+      <div class="grid2">
+        <div>
+          <label>Origen</label>
+          <input id="calcOrigen" placeholder="Origen">
+        </div>
+        <div>
+          <label>Destino</label>
+          <input id="calcDestino" placeholder="Destino">
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div>
+          <label>Kilómetros aproximados</label>
+          <input id="calcKm" type="number" step="0.1" placeholder="Km">
+        </div>
+        <div>
+          <label>Precio por km</label>
+          <input id="calcPrecioKm" type="number" step="0.01" value="1.35">
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div>
+          <label>Bajada de bandera</label>
+          <input id="calcBajada" type="number" step="0.01" value="4.00">
+        </div>
+        <div>
+          <label>Suplementos</label>
+          <input id="calcSuplementos" type="number" step="0.01" value="0">
+        </div>
+      </div>
+
+      <button onclick="calcularPrecio()">Calcular precio</button>
+      <div class="big" id="resultadoPrecio">0,00 €</div>
+      <button class="green" onclick="pasarCalculadoraAServicio()">Pasar a servicio</button>
+    </div>
+  </section>
+
+  <section id="semana" class="tabContent hidden">
+    <div class="card">
+      <h2>📊 Resumen semanal mejorado</h2>
+      <div class="muted" id="rangoSemana"></div>
+      <div class="big" id="totalSemana">0,00 €</div>
+      <div>
+        <span class="pill">40%: <b id="semana40">0,00 €</b></span>
+        <span class="pill">60%: <b id="semana60">0,00 €</b></span>
+        <span class="pill">Servicios: <b id="semanaServicios">0</b></span>
+      </div>
+      <div id="desgloseSemana" style="margin-top:14px"></div>
+    </div>
+
+    <div class="card">
+      <h2>💳 Por método de pago</h2>
+      <div id="metodosSemana"></div>
+    </div>
+  </section>
+
+  <section id="ajustes" class="tabContent hidden">
+    <div class="card">
+      <h2>⚙️ Ajustes</h2>
+      <label>Sonido al guardar servicio</label>
+      <select id="sonidoActivo" onchange="saveSettings()">
+        <option value="si">Activado</option>
+        <option value="no">Desactivado</option>
+      </select>
+
+      <label>Precio por km por defecto</label>
+      <input id="ajustePrecioKm" type="number" step="0.01" value="1.35" onchange="saveSettings()">
+
+      <label>Bajada de bandera por defecto</label>
+      <input id="ajusteBajada" type="number" step="0.01" value="4.00" onchange="saveSettings()">
+
+      <button class="secondary" onclick="exportarDatos()">Exportar copia de seguridad</button>
+      <button class="danger" onclick="borrarTodo()">Borrar todos los datos</button>
+    </div>
+  </section>
+</div>
+
+<script>
+const STORE = "taxi_ia_v12_servicios";
+const SETTINGS = "taxi_ia_v12_ajustes";
+let lastCalc = 0;
+
+function euro(n){
+  return (Number(n)||0).toFixed(2).replace(".", ",") + " €";
+}
+function todayISO(){
+  return new Date().toISOString().slice(0,10);
+}
+function nowTime(){
+  return new Date().toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"});
+}
+function load(){
+  return JSON.parse(localStorage.getItem(STORE) || "[]");
+}
+function save(data){
+  localStorage.setItem(STORE, JSON.stringify(data));
+}
+function getSettings(){
+  return JSON.parse(localStorage.getItem(SETTINGS) || '{"sonido":"si","precioKm":1.35,"bajada":4}');
+}
+function saveSettings(){
+  const s = {
+    sonido: document.getElementById("sonidoActivo").value,
+    precioKm: parseFloat(document.getElementById("ajustePrecioKm").value)||1.35,
+    bajada: parseFloat(document.getElementById("ajusteBajada").value)||4
+  };
+  localStorage.setItem(SETTINGS, JSON.stringify(s));
+  document.getElementById("calcPrecioKm").value = s.precioKm;
+  document.getElementById("calcBajada").value = s.bajada;
+}
+function applySettings(){
+  const s = getSettings();
+  document.getElementById("sonidoActivo").value = s.sonido;
+  document.getElementById("ajustePrecioKm").value = s.precioKm;
+  document.getElementById("ajusteBajada").value = s.bajada;
+  document.getElementById("calcPrecioKm").value = s.precioKm;
+  document.getElementById("calcBajada").value = s.bajada;
+}
+function playSound(){
+  if(getSettings().sonido !== "si") return;
+  try{
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.value = 880;
+    gain.gain.setValueAtTime(0.001, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.15, ctx.currentTime + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.16);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.18);
+  }catch(e){}
+}
+function showTab(id, btn){
+  document.querySelectorAll(".tabContent").forEach(x=>x.classList.add("hidden"));
+  document.getElementById(id).classList.remove("hidden");
+  document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+  btn.classList.add("active");
+  render();
+}
+function addService(){
+  const origen = document.getElementById("origen").value.trim();
+  const destino = document.getElementById("destino").value.trim();
+  const importe = parseFloat(document.getElementById("importe").value);
+  const pago = document.getElementById("pago").value;
+  const notas = document.getElementById("notas").value.trim();
+
+  if(!importe || importe <= 0){
+    alert("Pon un importe válido.");
+    return;
+  }
+
+  const data = load();
+  data.push({
+    id: Date.now(),
+    date: todayISO(),
+    time: nowTime(),
+    origen,
+    destino,
+    importe,
+    pago,
+    notas,
+    cerrado:false
+  });
+  save(data);
+  playSound();
+
+  document.getElementById("origen").value = "";
+  document.getElementById("destino").value = "";
+  document.getElementById("importe").value = "";
+  document.getElementById("notas").value = "";
+  render();
+}
+function borrarServicio(id){
+  if(!confirm("¿Borrar este servicio?")) return;
+  save(load().filter(s=>s.id!==id));
+  render();
+}
+function serviciosHoy(){
+  return load().filter(s=>s.date===todayISO());
+}
+function renderHoy(){
+  const hoy = serviciosHoy();
+  const total = hoy.reduce((a,s)=>a+Number(s.importe),0);
+  document.getElementById("totalHoy").textContent = euro(total);
+  document.getElementById("parte40").textContent = euro(total*0.4);
+  document.getElementById("parte60").textContent = euro(total*0.6);
+  document.getElementById("numServicios").textContent = hoy.length;
+
+  const box = document.getElementById("listaServicios");
+  if(!hoy.length){
+    box.innerHTML = '<div class="muted">Aún no hay servicios hoy.</div>';
+    return;
+  }
+  box.innerHTML = hoy.slice().reverse().map(s=>`
+    <div class="row">
+      <div>
+        <b>${s.time} · ${s.origen || "Origen"} → ${s.destino || "Destino"}</b>
+        <div class="muted">${s.pago}${s.notas ? " · " + s.notas : ""}</div>
+      </div>
+      <div style="text-align:right">
+        <div class="amount">${euro(s.importe)}</div>
+        <button class="mini danger" onclick="borrarServicio(${s.id})">Borrar</button>
+      </div>
+    </div>
+  `).join("");
+}
+function borrarHoy(){
+  if(!confirm("¿Borrar todos los servicios de hoy?")) return;
+  save(load().filter(s=>s.date!==todayISO()));
+  render();
+}
+function cerrarDia(){
+  const data = load();
+  data.forEach(s=>{ if(s.date===todayISO()) s.cerrado = true; });
+  save(data);
+  alert("Día cerrado. Los datos quedan guardados en el resumen semanal.");
+  render();
+}
+function weekRange(d=new Date()){
+  const date = new Date(d);
+  const day = date.getDay() || 7;
+  const monday = new Date(date);
+  monday.setDate(date.getDate() - day + 1);
+  monday.setHours(0,0,0,0);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate()+6);
+  sunday.setHours(23,59,59,999);
+  return {monday,sunday};
+}
+function isoDate(d){ return d.toISOString().slice(0,10); }
+function dayName(iso){
+  return new Date(iso+"T12:00:00").toLocaleDateString("es-ES",{weekday:"long",day:"2-digit",month:"2-digit"});
+}
+function renderSemana(){
+  const {monday,sunday} = weekRange();
+  const ini = isoDate(monday), fin = isoDate(sunday);
+  const data = load().filter(s=>s.date>=ini && s.date<=fin);
+  const total = data.reduce((a,s)=>a+Number(s.importe),0);
+
+  document.getElementById("rangoSemana").textContent = `Del ${ini} al ${fin}`;
+  document.getElementById("totalSemana").textContent = euro(total);
+  document.getElementById("semana40").textContent = euro(total*0.4);
+  document.getElementById("semana60").textContent = euro(total*0.6);
+  document.getElementById("semanaServicios").textContent = data.length;
+
+  const dias = {};
+  data.forEach(s=>{
+    if(!dias[s.date]) dias[s.date] = {total:0,count:0};
+    dias[s.date].total += Number(s.importe);
+    dias[s.date].count++;
+  });
+  let html = "";
+  for(let i=0;i<7;i++){
+    const d = new Date(monday);
+    d.setDate(monday.getDate()+i);
+    const iso = isoDate(d);
+    const item = dias[iso] || {total:0,count:0};
+    html += `<div class="row"><div><b>${dayName(iso)}</b><div class="muted">${item.count} servicios</div></div><div class="amount">${euro(item.total)}</div></div>`;
+  }
+  document.getElementById("desgloseSemana").innerHTML = html;
+
+  const metodos = {};
+  data.forEach(s=>{
+    metodos[s.pago] = (metodos[s.pago]||0) + Number(s.importe);
+  });
+  document.getElementById("metodosSemana").innerHTML =
+    Object.keys(metodos).length
+      ? Object.entries(metodos).map(([k,v])=>`<div class="row"><b>${k}</b><div class="amount">${euro(v)}</div></div>`).join("")
+      : '<div class="muted">Aún no hay datos esta semana.</div>';
+}
+function calcularPrecio(){
+  const km = parseFloat(document.getElementById("calcKm").value)||0;
+  const precioKm = parseFloat(document.getElementById("calcPrecioKm").value)||0;
+  const bajada = parseFloat(document.getElementById("calcBajada").value)||0;
+  const suplementos = parseFloat(document.getElementById("calcSuplementos").value)||0;
+  lastCalc = bajada + (km * precioKm) + suplementos;
+  document.getElementById("resultadoPrecio").textContent = euro(lastCalc);
+}
+function rutaRapida(o,d,km){
+  document.getElementById("calcOrigen").value = o;
+  document.getElementById("calcDestino").value = d;
+  document.getElementById("calcKm").value = km;
+  calcularPrecio();
+}
+function pasarCalculadoraAServicio(){
+  calcularPrecio();
+  document.getElementById("origen").value = document.getElementById("calcOrigen").value;
+  document.getElementById("destino").value = document.getElementById("calcDestino").value;
+  document.getElementById("importe").value = lastCalc ? lastCalc.toFixed(2) : "";
+  document.querySelectorAll(".tabContent").forEach(x=>x.classList.add("hidden"));
+  document.getElementById("servicios").classList.remove("hidden");
+  document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+  document.querySelectorAll(".tab")[0].classList.add("active");
+}
+function dictarRuta(){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const estado = document.getElementById("vozEstado");
+  if(!SR){
+    estado.textContent = "Tu navegador no permite dictado de voz. Prueba desde Chrome o Safari actualizado.";
+    return;
+  }
+  const rec = new SR();
+  rec.lang = "es-ES";
+  rec.interimResults = false;
+  rec.maxAlternatives = 1;
+  estado.textContent = "Escuchando...";
+  rec.start();
+
+  rec.onresult = (e)=>{
+    const text = e.results[0][0].transcript.toLowerCase();
+    estado.textContent = "Entendido: " + text;
+
+    let clean = text.replace(" euros","").replace(" euro","");
+    const money = clean.match(/(\d+[,.]?\d*)/);
+    if(money){
+      document.getElementById("importe").value = money[1].replace(",",".");
+    }
+    if(clean.includes("visa")) document.getElementById("pago").value = "Visa";
+    if(clean.includes("efectivo")) document.getElementById("pago").value = "Efectivo";
+    if(clean.includes("bonoweb")) document.getElementById("pago").value = "Bonoweb";
+    if(clean.includes("vueling")) document.getElementById("pago").value = "Bono Vueling";
+
+    clean = clean.replace(/(\d+[,.]?\d*)/g,"").replace(/visa|efectivo|bonoweb|bono|vueling|euros|euro/g,"").trim();
+    let parts = clean.split(" a ");
+    if(parts.length >= 2){
+      document.getElementById("origen").value = cap(parts[0]);
+      document.getElementById("destino").value = cap(parts.slice(1).join(" a "));
+    }else{
+      document.getElementById("notas").value = text;
+    }
+  };
+  rec.onerror = ()=> estado.textContent = "No se pudo escuchar bien. Prueba otra vez.";
+}
+function cap(s){
+  return s.trim().replace(/\b\w/g, c=>c.toUpperCase());
+}
+function exportarDatos(){
+  const blob = new Blob([JSON.stringify({servicios:load(), ajustes:getSettings()}, null, 2)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "taxi-ia-v12-copia.json";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+function borrarTodo(){
+  if(!confirm("¿Seguro que quieres borrar todos los datos?")) return;
+  localStorage.removeItem(STORE);
+  render();
+}
+function render(){
+  renderHoy();
+  renderSemana();
+}
+applySettings();
+render();
+</script>
+</body>
+</html>
