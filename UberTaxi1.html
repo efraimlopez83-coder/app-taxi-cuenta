@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#050816">
+  <title>Taxi Menorca IA V1</title>
+  <style>
+    :root{
+      --bg:#050816; --card:#10172a; --text:#f8fafc; --muted:#94a3b8;
+      --yellow:#facc15; --green:#22c55e; --blue:#38bdf8; --red:#ef4444;
+      --line:rgba(255,255,255,.12); --radius:22px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+      background:radial-gradient(circle at top left,rgba(250,204,21,.18),transparent 30%),
+                 radial-gradient(circle at top right,rgba(56,189,248,.14),transparent 28%),var(--bg);
+      color:var(--text); padding:14px; padding-bottom:70px;
+    }
+    .app{max-width:760px;margin:0 auto}
+    header{text-align:center;padding:18px 8px}
+    .logo{
+      width:88px;height:88px;margin:0 auto 12px;border-radius:25px;
+      background:linear-gradient(135deg,#facc15,#fb923c);
+      display:flex;align-items:center;justify-content:center;color:#111827;
+      font-weight:950;font-size:21px;line-height:1;box-shadow:0 18px 45px rgba(0,0,0,.35)
+    }
+    h1{margin:0;font-size:30px}
+    .subtitle{color:var(--muted);font-size:14px;margin-top:6px}
+    .tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;position:sticky;top:0;z-index:10;background:rgba(5,8,22,.9);backdrop-filter:blur(12px);padding:8px 0}
+    .tab{border:1px solid var(--line);background:rgba(255,255,255,.06);color:var(--text);border-radius:14px;padding:12px 6px;font-weight:900}
+    .tab.active{background:var(--yellow);color:#111827;border-color:transparent}
+    .card{background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.04));border:1px solid var(--line);border-radius:var(--radius);padding:18px;margin:14px 0;box-shadow:0 18px 45px rgba(0,0,0,.28)}
+    h2{margin:0 0 14px;font-size:21px}
+    label{display:block;color:var(--muted);font-size:13px;margin:12px 0 6px}
+    input,select,textarea{width:100%;border:1px solid var(--line);background:rgba(15,23,42,.96);color:var(--text);border-radius:16px;padding:14px;font-size:16px;outline:none}
+    textarea{min-height:70px;resize:vertical}
+    button{width:100%;border:0;border-radius:16px;padding:14px 16px;margin-top:12px;font-size:16px;font-weight:950;background:var(--yellow);color:#111827;cursor:pointer}
+    .blue{background:var(--blue);color:#082f49}.green{background:var(--green);color:#052e16}.red{background:var(--red);color:white}.dark{background:#334155;color:white}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .hidden{display:none}
+    .big{font-size:34px;font-weight:950;color:var(--yellow);margin:8px 0}
+    .muted{color:var(--muted);font-size:13px;line-height:1.4}
+    .row{display:flex;justify-content:space-between;gap:12px;align-items:center;border-bottom:1px solid var(--line);padding:13px 0}
+    .row:last-child{border-bottom:0}
+    .amount{font-weight:950;color:var(--yellow);white-space:nowrap}
+    .pill{display:inline-flex;gap:5px;align-items:center;background:rgba(255,255,255,.08);border:1px solid var(--line);border-radius:999px;padding:7px 10px;font-size:12px;margin:4px 4px 0 0;color:var(--muted)}
+    .status{font-weight:900;color:var(--blue)}
+    .notice{background:rgba(250,204,21,.08);border:1px solid rgba(250,204,21,.25);color:var(--muted);border-radius:16px;padding:12px;font-size:13px;line-height:1.35}
+    .mini{font-size:12px;padding:9px 10px;border-radius:12px;margin-top:8px}
+    @media(max-width:560px){.grid2{grid-template-columns:1fr}.tabs{grid-template-columns:1fr 1fr 1fr}h1{font-size:27px}}
+  </style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo">TAXI<br>IA</div>
+    <h1>Taxi Menorca IA V1</h1>
+    <div class="subtitle">Cliente · Conductores · Admin · Pedidos tipo Uber</div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('cliente', this)">👤 Cliente</button>
+    <button class="tab" onclick="showTab('conductor', this)">🚖 Conductor</button>
+    <button class="tab" onclick="showTab('admin', this)">👨‍💼 Admin</button>
+  </div>
+
+  <section id="cliente" class="tabContent">
+    <div class="card">
+      <h2>📍 Pedir taxi</h2>
+      <div class="notice">Primera versión local. Para que funcione entre varios móviles necesitaremos conectar Firebase en la V2.</div>
+
+      <label>Nombre del cliente</label>
+      <input id="clienteNombre" placeholder="Ej: Juan">
+
+      <div class="grid2">
+        <div>
+          <label>Origen</label>
+          <input id="origen" placeholder="Ej: Aeropuerto">
+        </div>
+        <div>
+          <label>Destino</label>
+          <input id="destino" placeholder="Ej: Mahón">
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div>
+          <label>Km aproximados</label>
+          <input id="km" type="number" step="0.1" placeholder="Ej: 5">
+        </div>
+        <div>
+          <label>Suplementos</label>
+          <input id="suplementos" type="number" step="0.01" value="0">
+        </div>
+      </div>
+
+      <label>Notas</label>
+      <textarea id="notas" placeholder="Ej: 4 personas, maletas, silla niño..."></textarea>
+
+      <button onclick="calcularPrecio()">Calcular precio orientativo</button>
+      <div class="big" id="precio">0,00 €</div>
+      <div class="muted">El precio final válido será el del taxímetro oficial.</div>
+
+      <button class="green" onclick="pedirTaxi()">Pedir taxi ahora</button>
+    </div>
+
+    <div class="card">
+      <h2>📲 Mi último pedido</h2>
+      <div id="ultimoPedidoCliente" class="muted">Aún no has pedido taxi.</div>
+    </div>
+  </section>
+
+  <section id="conductor" class="tabContent hidden">
+    <div class="card">
+      <h2>🚖 Panel conductor</h2>
+      <label>Nombre del conductor</label>
+      <input id="nombreConductor" placeholder="Ej: Efra">
+      <button class="dark" onclick="guardarConductor()">Entrar como conductor</button>
+      <div class="muted" id="conductorActivo"></div>
+    </div>
+
+    <div class="card">
+      <h2>🟡 Pedidos pendientes</h2>
+      <div id="pedidosPendientes"></div>
+    </div>
+
+    <div class="card">
+      <h2>✅ Mis viajes aceptados</h2>
+      <div id="misViajes"></div>
+    </div>
+  </section>
+
+  <section id="admin" class="tabContent hidden">
+    <div class="card">
+      <h2>👨‍💼 Resumen admin</h2>
+      <div class="big" id="totalDia">0,00 €</div>
+      <span class="pill">Pedidos hoy: <b id="pedidosHoy">0</b></span>
+      <span class="pill">Pendientes: <b id="pendientesHoy">0</b></span>
+      <span class="pill">Finalizados: <b id="finalizadosHoy">0</b></span>
+    </div>
+
+    <div class="card">
+      <h2>📋 Todos los pedidos</h2>
+      <div id="todosPedidos"></div>
+      <button class="red" onclick="borrarTodo()">Borrar todos los pedidos</button>
+    </div>
+  </section>
+</div>
+
+<script>
+const STORE = "taxi_menorca_ia_v1_pedidos";
+const DRIVER = "taxi_menorca_ia_v1_driver";
+let precioActual = 0;
+
+function euro(n){ return (Number(n)||0).toFixed(2).replace(".", ",") + " €"; }
+function hoyISO(){ return new Date().toISOString().slice(0,10); }
+function hora(){ return new Date().toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"}); }
+function cargar(){ return JSON.parse(localStorage.getItem(STORE) || "[]"); }
+function guardar(data){ localStorage.setItem(STORE, JSON.stringify(data)); }
+
+function showTab(id, btn){
+  document.querySelectorAll(".tabContent").forEach(x=>x.classList.add("hidden"));
+  document.getElementById(id).classList.remove("hidden");
+  document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+  btn.classList.add("active");
+  render();
+}
+
+function calcularPrecio(){
+  const km = parseFloat(document.getElementById("km").value) || 0;
+  const suplementos = parseFloat(document.getElementById("suplementos").value) || 0;
+  const bajada = 4.00;
+  const precioKm = 1.35;
+  precioActual = bajada + (km * precioKm) + suplementos;
+  document.getElementById("precio").textContent = euro(precioActual);
+}
+
+function pedirTaxi(){
+  calcularPrecio();
+  const cliente = document.getElementById("clienteNombre").value.trim() || "Cliente";
+  const origen = document.getElementById("origen").value.trim();
+  const destino = document.getElementById("destino").value.trim();
+  const notas = document.getElementById("notas").value.trim();
+
+  if(!origen || !destino){
+    alert("Pon origen y destino.");
+    return;
+  }
+
+  const ref = "TX-" + Math.floor(100000 + Math.random()*900000);
+  const pedidos = cargar();
+
+  pedidos.push({
+    id: Date.now(),
+    ref,
+    fecha: hoyISO(),
+    hora: hora(),
+    cliente,
+    origen,
+    destino,
+    notas,
+    precio: precioActual,
+    estado: "Buscando conductor",
+    conductor: "",
+    historial: [{hora: hora(), texto: "Pedido creado"}]
+  });
+
+  guardar(pedidos);
+
+  document.getElementById("origen").value = "";
+  document.getElementById("destino").value = "";
+  document.getElementById("km").value = "";
+  document.getElementById("suplementos").value = "0";
+  document.getElementById("notas").value = "";
+  document.getElementById("precio").textContent = "0,00 €";
+  precioActual = 0;
+
+  render();
+  alert("Taxi solicitado. Referencia: " + ref);
+}
+
+function guardarConductor(){
+  const nombre = document.getElementById("nombreConductor").value.trim();
+  if(!nombre){ alert("Pon tu nombre de conductor."); return; }
+  localStorage.setItem(DRIVER, nombre);
+  render();
+}
+
+function conductorActual(){
+  return localStorage.getItem(DRIVER) || "";
+}
+
+function aceptarPedido(id){
+  const conductor = conductorActual();
+  if(!conductor){ alert("Primero pon tu nombre de conductor."); return; }
+
+  const pedidos = cargar();
+  const p = pedidos.find(x=>x.id===id);
+  if(!p) return;
+
+  if(p.conductor && p.conductor !== conductor){
+    alert("Este pedido ya lo aceptó otro conductor.");
+    return;
+  }
+
+  p.conductor = conductor;
+  p.estado = "Conductor asignado";
+  p.historial.push({hora: hora(), texto: "Aceptado por " + conductor});
+  guardar(pedidos);
+  render();
+}
+
+function cambiarEstado(id, estado){
+  const pedidos = cargar();
+  const p = pedidos.find(x=>x.id===id);
+  if(!p) return;
+  p.estado = estado;
+  p.historial.push({hora: hora(), texto: estado});
+  guardar(pedidos);
+  render();
+}
+
+function borrarPedido(id){
+  if(!confirm("¿Borrar este pedido?")) return;
+  guardar(cargar().filter(p=>p.id!==id));
+  render();
+}
+
+function cardPedido(p, botones=false){
+  const hist = (p.historial||[]).map(h=>`${h.hora} · ${h.texto}`).join("<br>");
+  return `
+    <div class="row">
+      <div>
+        <b>${p.ref} · ${p.origen} → ${p.destino}</b>
+        <div class="muted">
+          ${p.hora} · Cliente: ${p.cliente}<br>
+          Estado: <span class="status">${p.estado}</span><br>
+          Conductor: ${p.conductor || "Sin asignar"}<br>
+          ${p.notas ? "Notas: " + p.notas + "<br>" : ""}
+          <br>${hist}
+        </div>
+      </div>
+      <div style="text-align:right">
+        <div class="amount">${euro(p.precio)}</div>
+        ${botones}
+      </div>
+    </div>
+  `;
+}
+
+function renderCliente(){
+  const pedidos = cargar();
+  const ultimo = pedidos[pedidos.length-1];
+  const box = document.getElementById("ultimoPedidoCliente");
+  if(!ultimo){
+    box.innerHTML = "Aún no has pedido taxi.";
+    return;
+  }
+  box.innerHTML = `
+    <b>${ultimo.ref}</b><br>
+    ${ultimo.origen} → ${ultimo.destino}<br>
+    Estado: <span class="status">${ultimo.estado}</span><br>
+    Conductor: ${ultimo.conductor || "Buscando..."}<br>
+    Precio orientativo: <b>${euro(ultimo.precio)}</b>
+  `;
+}
+
+function renderConductor(){
+  const conductor = conductorActual();
+  document.getElementById("conductorActivo").textContent = conductor ? "Conductor activo: " + conductor : "No has iniciado como conductor.";
+
+  const pedidos = cargar();
+  const pendientes = pedidos.filter(p=>p.estado==="Buscando conductor");
+  document.getElementById("pedidosPendientes").innerHTML = pendientes.length ? pendientes.map(p=>cardPedido(p, `<button class="mini green" onclick="aceptarPedido(${p.id})">Aceptar</button>`)).join("") : '<div class="muted">No hay pedidos pendientes.</div>';
+
+  const mios = pedidos.filter(p=>p.conductor===conductor && p.estado!=="Finalizado");
+  document.getElementById("misViajes").innerHTML = mios.length ? mios.map(p=>cardPedido(p, `
+    <button class="mini blue" onclick="cambiarEstado(${p.id}, 'Taxi en camino')">En camino</button>
+    <button class="mini green" onclick="cambiarEstado(${p.id}, 'Cliente recogido')">Recogido</button>
+    <button class="mini dark" onclick="cambiarEstado(${p.id}, 'Finalizado')">Finalizar</button>
+  `)).join("") : '<div class="muted">No tienes viajes aceptados.</div>';
+}
+
+function renderAdmin(){
+  const hoy = cargar().filter(p=>p.fecha===hoyISO());
+  const total = hoy.filter(p=>p.estado==="Finalizado").reduce((s,p)=>s+Number(p.precio),0);
+  document.getElementById("totalDia").textContent = euro(total);
+  document.getElementById("pedidosHoy").textContent = hoy.length;
+  document.getElementById("pendientesHoy").textContent = hoy.filter(p=>p.estado==="Buscando conductor").length;
+  document.getElementById("finalizadosHoy").textContent = hoy.filter(p=>p.estado==="Finalizado").length;
+
+  const todos = cargar().slice().reverse();
+  document.getElementById("todosPedidos").innerHTML = todos.length ? todos.map(p=>cardPedido(p, `<button class="mini red" onclick="borrarPedido(${p.id})">Borrar</button>`)).join("") : '<div class="muted">No hay pedidos todavía.</div>';
+}
+
+function borrarTodo(){
+  if(!confirm("¿Borrar todos los pedidos?")) return;
+  localStorage.removeItem(STORE);
+  render();
+}
+
+function render(){
+  renderCliente();
+  renderConductor();
+  renderAdmin();
+}
+
+render();
+</script>
+</body>
+</html>
