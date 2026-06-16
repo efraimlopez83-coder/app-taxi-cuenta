@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Voice Taxi Pro V12</title>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Arial,Helvetica,sans-serif;
+  background:#0f172a;
+  color:white;
+}
+header{
+  background:linear-gradient(135deg,#facc15,#f97316);
+  color:#111827;
+  padding:18px;
+  text-align:center;
+  font-weight:bold;
+}
+header h1{margin:0;font-size:26px}
+header p{margin:4px 0 0;font-size:13px}
+.container{padding:14px;max-width:900px;margin:auto}
+.card{
+  background:#1e293b;
+  border-radius:18px;
+  padding:15px;
+  margin-bottom:14px;
+  box-shadow:0 8px 20px rgba(0,0,0,.25);
+}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:10px;
+}
+.box{
+  background:#334155;
+  border-radius:14px;
+  padding:12px;
+  text-align:center;
+}
+.box small{color:#cbd5e1}
+.box strong{display:block;font-size:22px;margin-top:5px}
+input,select,button{
+  width:100%;
+  padding:13px;
+  border-radius:12px;
+  border:none;
+  margin-top:8px;
+  font-size:16px;
+}
+input,select{
+  background:#0f172a;
+  color:white;
+  border:1px solid #475569;
+}
+button{
+  background:#facc15;
+  color:#111827;
+  font-weight:bold;
+  cursor:pointer;
+}
+button.secondary{background:#38bdf8}
+button.danger{background:#ef4444;color:white}
+button.dark{background:#475569;color:white}
+.tabs{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:8px;
+  margin-bottom:14px;
+}
+.tabs button{
+  font-size:13px;
+  padding:10px 5px;
+}
+.service{
+  background:#0f172a;
+  border:1px solid #334155;
+  border-radius:14px;
+  padding:12px;
+  margin-top:10px;
+}
+.service b{color:#facc15}
+.row{
+  display:flex;
+  gap:8px;
+}
+.row button{flex:1}
+.hidden{display:none}
+.badge{
+  display:inline-block;
+  padding:4px 8px;
+  border-radius:999px;
+  background:#334155;
+  font-size:12px;
+  margin-top:4px;
+}
+.footer-space{height:20px}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🚕 Voice Taxi Pro V12</h1>
+  <p>Agenda, servicios, historial, voz, calculadora y resumen semanal</p>
+</header>
+
+<div class="container">
+
+  <div class="tabs">
+    <button onclick="showTab('inicio')">Inicio</button>
+    <button onclick="showTab('nuevo')">Servicio</button>
+    <button onclick="showTab('historial')">Historial</button>
+    <button onclick="showTab('semana')">Semana</button>
+  </div>
+
+  <section id="inicio" class="tab">
+    <div class="card">
+      <h2>📊 Resumen de hoy</h2>
+      <div class="grid">
+        <div class="box"><small>Total día</small><strong id="totalHoy">0€</strong></div>
+        <div class="box"><small>Servicios</small><strong id="serviciosHoy">0</strong></div>
+        <div class="box"><small>40%</small><strong id="porcentaje40">0€</strong></div>
+        <div class="box"><small>60%</small><strong id="porcentaje60">0€</strong></div>
+        <div class="box"><small>Efectivo</small><strong id="efectivoHoy">0€</strong></div>
+        <div class="box"><small>Visa</small><strong id="visaHoy">0€</strong></div>
+        <div class="box"><small>Bonoweb</small><strong id="bonowebHoy">0€</strong></div>
+        <div class="box"><small>Bono Vueling</small><strong id="vuelingHoy">0€</strong></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>🔒 Cierre del día</h2>
+      <button onclick="cerrarDia()">Cerrar día de hoy</button>
+      <button class="danger" onclick="borrarTodo()">Borrar todos los datos</button>
+    </div>
+  </section>
+
+  <section id="nuevo" class="tab hidden">
+    <div class="card">
+      <h2>➕ Añadir servicio</h2>
+      <input id="origen" placeholder="Origen">
+      <button class="secondary" onclick="dictar('origen')">🎤 Dictar origen</button>
+
+      <input id="destino" placeholder="Destino">
+      <button class="secondary" onclick="dictar('destino')">🎤 Dictar destino</button>
+
+      <input id="importe" type="number" step="0.01" placeholder="Importe €">
+
+      <select id="metodo">
+        <option value="Efectivo">Efectivo</option>
+        <option value="Visa">Visa</option>
+        <option value="Bonoweb">Bonoweb</option>
+        <option value="Bono Vueling">Bono Vueling</option>
+      </select>
+
+      <button onclick="guardarServicio()">Guardar servicio</button>
+    </div>
+
+    <div class="card">
+      <h2>🧮 Calculadora rápida</h2>
+      <input id="km" type="number" step="0.1" placeholder="Kilómetros aproximados">
+      <input id="precioKm" type="number" step="0.01" value="1.35" placeholder="Precio por km">
+      <input id="salida" type="number" step="0.01" value="4.00" placeholder="Bajada de bandera / salida">
+      <button onclick="calcularPrecio()">Calcular precio</button>
+      <h3 id="precioCalculado">Precio aproximado: 0€</h3>
+    </div>
+  </section>
+
+  <section id="historial" class="tab hidden">
+    <div class="card">
+      <h2>📅 Historial</h2>
+      <input id="fechaFiltro" type="date" onchange="renderHistorial()">
+      <select id="metodoFiltro" onchange="renderHistorial()">
+        <option value="Todos">Todos los métodos</option>
+        <option value="Efectivo">Efectivo</option>
+        <option value="Visa">Visa</option>
+        <option value="Bonoweb">Bonoweb</option>
+        <option value="Bono Vueling">Bono Vueling</option>
+      </select>
+      <input id="buscador" placeholder="Buscar origen, destino o importe" oninput="renderHistorial()">
+      <div id="listaHistorial"></div>
+    </div>
+  </section>
+
+  <section id="semana" class="tab hidden">
+    <div class="card">
+      <h2>📈 Resumen semanal</h2>
+      <p class="badge">Cuenta de lunes a domingo</p>
+      <div class="grid">
+        <div class="box"><small>Total semana</small><strong id="totalSemana">0€</strong></div>
+        <div class="box"><small>Servicios</small><strong id="serviciosSemana">0</strong></div>
+        <div class="box"><small>40%</small><strong id="semana40">0€</strong></div>
+        <div class="box"><small>60%</small><strong id="semana60">0€</strong></div>
+        <div class="box"><small>Efectivo</small><strong id="semanaEfectivo">0€</strong></div>
+        <div class="box"><small>Visa</small><strong id="semanaVisa">0€</strong></div>
+        <div class="box"><small>Bonoweb</small><strong id="semanaBonoweb">0€</strong></div>
+        <div class="box"><small>Bono Vueling</small><strong id="semanaVueling">0€</strong></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>💾 Copia de seguridad</h2>
+      <button onclick="exportarCSV()">Exportar CSV</button>
+    </div>
+  </section>
+
+  <div class="footer-space"></div>
+</div>
+
+<script>
+let servicios = JSON.parse(localStorage.getItem("serviciosTaxiV12")) || [];
+
+function hoy(){
+  return new Date().toISOString().split("T")[0];
+}
+
+function horaActual(){
+  const d = new Date();
+  return d.toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"});
+}
+
+function euros(n){
+  return (Number(n)||0).toFixed(2).replace(".",",") + "€";
+}
+
+function guardarLocal(){
+  localStorage.setItem("serviciosTaxiV12", JSON.stringify(servicios));
+}
+
+function showTab(id){
+  document.querySelectorAll(".tab").forEach(t=>t.classList.add("hidden"));
+  document.getElementById(id).classList.remove("hidden");
+  actualizarTodo();
+}
+
+function sonido(){
+  try{
+    const audio = new Audio("data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAA=");
+    audio.play();
+    if(navigator.vibrate) navigator.vibrate(80);
+  }catch(e){}
+}
+
+function guardarServicio(){
+  const origen = document.getElementById("origen").value.trim();
+  const destino = document.getElementById("destino").value.trim();
+  const importe = parseFloat(document.getElementById("importe").value);
+  const metodo = document.getElementById("metodo").value;
+
+  if(!importe || importe <= 0){
+    alert("Pon un importe válido");
+    return;
+  }
+
+  servicios.push({
+    id: Date.now(),
+    fecha: hoy(),
+    hora: horaActual(),
+    origen,
+    destino,
+    importe,
+    metodo,
+    cerrado:false
+  });
+
+  guardarLocal();
+  sonido();
+
+  document.getElementById("origen").value="";
+  document.getElementById("destino").value="";
+  document.getElementById("importe").value="";
+
+  actualizarTodo();
+  alert("Servicio añadido ✅");
+}
+
+function resumen(lista){
+  const r = {
+    total:0,
+    cantidad:lista.length,
+    efectivo:0,
+    visa:0,
+    bonoweb:0,
+    vueling:0
+  };
+
+  lista.forEach(s=>{
+    r.total += Number(s.importe)||0;
+    if(s.metodo==="Efectivo") r.efectivo += Number(s.importe)||0;
+    if(s.metodo==="Visa") r.visa += Number(s.importe)||0;
+    if(s.metodo==="Bonoweb") r.bonoweb += Number(s.importe)||0;
+    if(s.metodo==="Bono Vueling") r.vueling += Number(s.importe)||0;
+  });
+
+  return r;
+}
+
+function actualizarInicio(){
+  const lista = servicios.filter(s=>s.fecha===hoy());
+  const r = resumen(lista);
+
+  totalHoy.textContent = euros(r.total);
+  serviciosHoy.textContent = r.cantidad;
+  porcentaje40.textContent = euros(r.total*0.40);
+  porcentaje60.textContent = euros(r.total*0.60);
+  efectivoHoy.textContent = euros(r.efectivo);
+  visaHoy.textContent = euros(r.visa);
+  bonowebHoy.textContent = euros(r.bonoweb);
+  vuelingHoy.textContent = euros(r.vueling);
+}
+
+function renderHistorial(){
+  const fecha = document.getElementById("fechaFiltro").value || hoy();
+  const metodo = document.getElementById("metodoFiltro").value;
+  const buscar = document.getElementById("buscador").value.toLowerCase();
+
+  let lista = servicios.filter(s=>s.fecha===fecha);
+
+  if(metodo !== "Todos"){
+    lista = lista.filter(s=>s.metodo===metodo);
+  }
+
+  if(buscar){
+    lista = lista.filter(s =>
+      (s.origen||"").toLowerCase().includes(buscar) ||
+      (s.destino||"").toLowerCase().includes(buscar) ||
+      String(s.importe).includes(buscar) ||
+      (s.metodo||"").toLowerCase().includes(buscar)
+    );
+  }
+
+  const cont = document.getElementById("listaHistorial");
+  cont.innerHTML = "";
+
+  if(lista.length===0){
+    cont.innerHTML = "<p>No hay servicios para esta búsqueda.</p>";
+    return;
+  }
+
+  lista.slice().reverse().forEach(s=>{
+    const div = document.createElement("div");
+    div.className = "service";
+    div.innerHTML = `
+      <b>${euros(s.importe)}</b> · ${s.metodo}<br>
+      <span class="badge">${s.fecha} · ${s.hora}</span><br>
+      🚩 ${s.origen || "Sin origen"}<br>
+      🏁 ${s.destino || "Sin destino"}<br>
+      ${s.cerrado ? '<span class="badge">Día cerrado</span>' : ''}
+      <div class="row">
+        <button class="secondary" onclick="editarServicio(${s.id})">Editar</button>
+        <button class="danger" onclick="eliminarServicio(${s.id})">Borrar</button>
+      </div>
+    `;
+    cont.appendChild(div);
+  });
+}
+
+function editarServicio(id){
+  const s = servicios.find(x=>x.id===id);
+  if(!s) return;
+
+  const nuevoImporte = prompt("Nuevo importe:", s.importe);
+  if(nuevoImporte===null) return;
+
+  const nuevoOrigen = prompt("Nuevo origen:", s.origen || "");
+  if(nuevoOrigen===null) return;
+
+  const nuevoDestino = prompt("Nuevo destino:", s.destino || "");
+  if(nuevoDestino===null) return;
+
+  s.importe = parseFloat(nuevoImporte) || s.importe;
+  s.origen = nuevoOrigen;
+  s.destino = nuevoDestino;
+
+  guardarLocal();
+  actualizarTodo();
+}
+
+function eliminarServicio(id){
+  if(!confirm("¿Borrar este servicio?")) return;
+  servicios = servicios.filter(s=>s.id!==id);
+  guardarLocal();
+  actualizarTodo();
+}
+
+function cerrarDia(){
+  const fecha = hoy();
+  const lista = servicios.filter(s=>s.fecha===fecha);
+  if(lista.length===0){
+    alert("No hay servicios hoy");
+    return;
+  }
+  if(!confirm("¿Cerrar el día de hoy?")) return;
+
+  servicios.forEach(s=>{
+    if(s.fecha===fecha) s.cerrado = true;
+  });
+
+  guardarLocal();
+  actualizarTodo();
+  alert("Día cerrado ✅");
+}
+
+function inicioSemana(date){
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+  d.setDate(diff);
+  d.setHours(0,0,0,0);
+  return d;
+}
+
+function actualizarSemana(){
+  const start = inicioSemana(new Date());
+  const end = new Date(start);
+  end.setDate(start.getDate()+7);
+
+  const lista = servicios.filter(s=>{
+    const f = new Date(s.fecha);
+    return f >= start && f < end;
+  });
+
+  const r = resumen(lista);
+
+  totalSemana.textContent = euros(r.total);
+  serviciosSemana.textContent = r.cantidad;
+  semana40.textContent = euros(r.total*0.40);
+  semana60.textContent = euros(r.total*0.60);
+  semanaEfectivo.textContent = euros(r.efectivo);
+  semanaVisa.textContent = euros(r.visa);
+  semanaBonoweb.textContent = euros(r.bonoweb);
+  semanaVueling.textContent = euros(r.vueling);
+}
+
+function calcularPrecio(){
+  const km = parseFloat(document.getElementById("km").value)||0;
+  const precioKm = parseFloat(document.getElementById("precioKm").value)||0;
+  const salida = parseFloat(document.getElementById("salida").value)||0;
+  const total = salida + (km * precioKm);
+  precioCalculado.textContent = "Precio aproximado: " + euros(total);
+}
+
+function dictar(campo){
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SpeechRecognition){
+    alert("Tu navegador no permite dictado por voz. Prueba desde Chrome o Safari actualizado.");
+    return;
+  }
+
+  const rec = new SpeechRecognition();
+  rec.lang = "es-ES";
+  rec.start();
+
+  rec.onresult = function(e){
+    document.getElementById(campo).value = e.results[0][0].transcript;
+  };
+}
+
+function exportarCSV(){
+  if(servicios.length===0){
+    alert("No hay datos para exportar");
+    return;
+  }
+
+  let csv = "Fecha,Hora,Origen,Destino,Importe,Metodo,Cerrado\n";
+
+  servicios.forEach(s=>{
+    csv += `${s.fecha},${s.hora},"${s.origen||""}","${s.destino||""}",${s.importe},${s.metodo},${s.cerrado ? "Si" : "No"}\n`;
+  });
+
+  const blob = new Blob([csv], {type:"text/csv;charset=utf-8"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "voice-taxi-v12.csv";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function borrarTodo(){
+  if(!confirm("Esto borrará todos los servicios guardados. ¿Seguro?")) return;
+  servicios = [];
+  guardarLocal();
+  actualizarTodo();
+}
+
+function actualizarTodo(){
+  actualizarInicio();
+  actualizarSemana();
+  if(!document.getElementById("fechaFiltro").value){
+    document.getElementById("fechaFiltro").value = hoy();
+  }
+  renderHistorial();
+}
+
+actualizarTodo();
+</script>
+
+</body>
+</html>
