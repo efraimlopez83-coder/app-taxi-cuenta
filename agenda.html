@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Mi Agenda Pro</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0f172a;
+      color: white;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #38bdf8;
+    }
+
+    .card {
+      background: #1e293b;
+      padding: 15px;
+      border-radius: 15px;
+      margin-bottom: 15px;
+      box-shadow: 0 4px 10px #0005;
+    }
+
+    input, textarea, button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 8px;
+      border-radius: 10px;
+      border: none;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+
+    input, textarea {
+      background: #334155;
+      color: white;
+    }
+
+    button {
+      background: #38bdf8;
+      color: #020617;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #0ea5e9;
+    }
+
+    .cita {
+      background: #334155;
+      padding: 12px;
+      border-radius: 12px;
+      margin-top: 10px;
+    }
+
+    .fecha {
+      color: #facc15;
+      font-weight: bold;
+    }
+
+    .hecha {
+      opacity: 0.5;
+      text-decoration: line-through;
+    }
+
+    .delete {
+      background: #ef4444;
+      color: white;
+      margin-top: 8px;
+    }
+
+    .done {
+      background: #22c55e;
+      color: white;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📅 Mi Agenda Pro</h1>
+
+  <div class="card">
+    <h2>Nueva cita</h2>
+
+    <input id="titulo" type="text" placeholder="Título de la cita">
+    <textarea id="nota" placeholder="Nota o detalles"></textarea>
+    <input id="fecha" type="date">
+    <input id="hora" type="time">
+
+    <button onclick="agregarCita()">Añadir cita</button>
+  </div>
+
+  <div class="card">
+    <h2>Mis citas</h2>
+    <div id="listaCitas"></div>
+  </div>
+
+  <audio id="alarma">
+    <source src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg" type="audio/ogg">
+  </audio>
+
+  <script>
+    let citas = JSON.parse(localStorage.getItem("citasAgenda")) || [];
+
+    function guardar() {
+      localStorage.setItem("citasAgenda", JSON.stringify(citas));
+    }
+
+    function agregarCita() {
+      const titulo = document.getElementById("titulo").value.trim();
+      const nota = document.getElementById("nota").value.trim();
+      const fecha = document.getElementById("fecha").value;
+      const hora = document.getElementById("hora").value;
+
+      if (!titulo || !fecha || !hora) {
+        alert("Rellena título, fecha y hora.");
+        return;
+      }
+
+      citas.push({
+        id: Date.now(),
+        titulo,
+        nota,
+        fecha,
+        hora,
+        hecha: false,
+        avisada: false
+      });
+
+      guardar();
+      mostrarCitas();
+
+      document.getElementById("titulo").value = "";
+      document.getElementById("nota").value = "";
+      document.getElementById("fecha").value = "";
+      document.getElementById("hora").value = "";
+    }
+
+    function mostrarCitas() {
+      const lista = document.getElementById("listaCitas");
+      lista.innerHTML = "";
+
+      citas.sort((a, b) => {
+        return new Date(a.fecha + "T" + a.hora) - new Date(b.fecha + "T" + b.hora);
+      });
+
+      if (citas.length === 0) {
+        lista.innerHTML = "<p>No tienes citas todavía.</p>";
+        return;
+      }
+
+      citas.forEach(cita => {
+        const div = document.createElement("div");
+        div.className = "cita" + (cita.hecha ? " hecha" : "");
+
+        div.innerHTML = `
+          <div class="fecha">📌 ${cita.fecha} a las ${cita.hora}</div>
+          <h3>${cita.titulo}</h3>
+          <p>${cita.nota || "Sin nota"}</p>
+          <button class="done" onclick="marcarHecha(${cita.id})">Marcar como hecha</button>
+          <button class="delete" onclick="borrarCita(${cita.id})">Borrar</button>
+        `;
+
+        lista.appendChild(div);
+      });
+    }
+
+    function marcarHecha(id) {
+      citas = citas.map(cita => {
+        if (cita.id === id) cita.hecha = true;
+        return cita;
+      });
+      guardar();
+      mostrarCitas();
+    }
+
+    function borrarCita(id) {
+      citas = citas.filter(cita => cita.id !== id);
+      guardar();
+      mostrarCitas();
+    }
+
+    function revisarAlarmas() {
+      const ahora = new Date();
+
+      citas.forEach(cita => {
+        const fechaCita = new Date(cita.fecha + "T" + cita.hora);
+
+        if (!cita.avisada && !cita.hecha && ahora >= fechaCita) {
+          cita.avisada = true;
+          guardar();
+
+          document.getElementById("alarma").play();
+
+          alert("🔔 Recordatorio: " + cita.titulo + "\n\n" + (cita.nota || ""));
+        }
+      });
+    }
+
+    mostrarCitas();
+    setInterval(revisarAlarmas, 10000);
+  </script>
+
+</body>
+</html>
