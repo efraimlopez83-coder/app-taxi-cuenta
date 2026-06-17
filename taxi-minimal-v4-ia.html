@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Taxi Minimal v4 IA</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f4f4f5;color:#111}
+.app{max-width:480px;margin:auto;min-height:100vh;padding:18px 18px 95px}
+h1{font-size:27px;margin:8px 0 2px}
+h2{margin:0 0 12px}
+.sub{color:#666;margin-bottom:16px}
+.card{background:white;border-radius:24px;padding:18px;box-shadow:0 8px 25px rgba(0,0,0,.07);margin-bottom:14px}
+input,select,button{width:100%;padding:14px;margin-top:10px;border-radius:16px;border:1px solid #ddd;font-size:16px}
+button{border:none;background:#111;color:white;font-weight:800}
+.secondary{background:#e8e8e8!important;color:#111!important}
+.danger{background:#ff3b30!important}
+.total{font-size:38px;font-weight:900;margin:8px 0}
+.small{font-size:13px;color:#666}
+.row{display:flex;justify-content:space-between;border-bottom:1px solid #eee;padding:10px 0}
+.service{border-bottom:1px solid #eee;padding:12px 0}
+.badge{display:inline-block;background:#f1f1f1;padding:5px 10px;border-radius:999px;font-size:13px;margin-top:5px}
+.tabs{position:fixed;bottom:0;left:0;right:0;max-width:480px;margin:auto;background:white;display:flex;gap:6px;padding:9px;border-top:1px solid #ddd}
+.tabs button{font-size:11px;padding:11px 4px;border-radius:14px;background:#eee;color:#111}
+.tabs button.activeTab{background:#111;color:white}
+.page{display:none}
+.page.active{display:block}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mini{background:#f7f7f7;border-radius:18px;padding:14px}
+.mini b{font-size:18px}
+</style>
+</head>
+
+<body>
+<div class="app">
+  <h1>Taxi Minimal v4 IA</h1>
+  <div class="sub">Servicios, resumen, historial, estadísticas e IA</div>
+
+  <div id="page1" class="page active">
+    <div class="card">
+      <h2>Añadir servicio</h2>
+      <input id="origen" placeholder="Origen">
+      <input id="destino" placeholder="Destino">
+      <input id="importe" type="number" step="0.01" placeholder="Importe €">
+      <select id="pago">
+        <option>Efectivo</option>
+        <option>Visa</option>
+        <option>Bizum</option>
+        <option>Bonoweb</option>
+        <option>Abono vuelos</option>
+      </select>
+      <button onclick="addService(true)">Añadir servicio</button>
+      <button class="secondary" onclick="vozIA()">🎙️ Añadir por voz IA</button>
+    </div>
+
+    <div class="card">
+      <h2>Último servicio</h2>
+      <div id="ultimo" class="small">Aún no hay servicios</div>
+    </div>
+  </div>
+
+  <div id="page2" class="page">
+    <div class="card">
+      <h2>Resumen de hoy</h2>
+      <div class="total" id="totalHoy">0,00 €</div>
+      <p id="fraseHoy" class="small">Hoy todavía no hay servicios.</p>
+    </div>
+
+    <div class="card">
+      <h2>Métodos de pago</h2>
+      <div id="pagosHoy"></div>
+    </div>
+
+    <div class="card">
+      <h2>Datos rápidos</h2>
+      <div id="statsHoy"></div>
+    </div>
+
+    <div class="card">
+      <button onclick="cerrarDia()">Cerrar día</button>
+    </div>
+  </div>
+
+  <div id="page3" class="page">
+    <div class="card">
+      <h2>Historial</h2>
+      <input id="fechaBuscar" type="date" onchange="render()">
+      <button class="secondary" onclick="ponerHoy()">Ver hoy</button>
+    </div>
+
+    <div class="card">
+      <h2>Día seleccionado</h2>
+      <div id="resumenDia"></div>
+    </div>
+
+    <div class="card">
+      <h2>Resumen semanal</h2>
+      <div id="resumenSemana"></div>
+    </div>
+
+    <div class="card">
+      <h2>Resumen mensual</h2>
+      <div id="resumenMes"></div>
+    </div>
+
+    <div class="card">
+      <h2>Servicios</h2>
+      <div id="historial"></div>
+    </div>
+  </div>
+
+  <div id="page4" class="page">
+    <div class="card">
+      <h2>Estadísticas</h2>
+      <div class="grid" id="estadisticas"></div>
+    </div>
+
+    <div class="card">
+      <h2>Récords</h2>
+      <div id="records"></div>
+    </div>
+  </div>
+
+  <div id="page5" class="page">
+    <div class="card">
+      <h2>IA Taxi</h2>
+      <input id="preguntaIA" placeholder="Ej: ¿Cuánto hice hoy?">
+      <button onclick="preguntarIA()">Preguntar</button>
+      <button class="secondary" onclick="vozPreguntaIA()">🎙️ Preguntar por voz</button>
+    </div>
+
+    <div class="card">
+      <h2>Respuesta</h2>
+      <div id="respuestaIA" class="small">Pregúntame algo sobre tus servicios.</div>
+    </div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button id="tab1" class="activeTab" onclick="showPage(1)">Servicio</button>
+  <button id="tab2" onclick="showPage(2)">Resumen</button>
+  <button id="tab3" onclick="showPage(3)">Historial</button>
+  <button id="tab4" onclick="showPage(4)">Stats</button>
+  <button id="tab5" onclick="showPage(5)">IA</button>
+</div>
+
+<script>
+let servicios = JSON.parse(localStorage.getItem("taxiMinimalV4IA")) || [];
+
+function hoyISO(){
+  return new Date().toISOString().slice(0,10);
+}
+
+function euro(n){
+  return Number(n || 0).toLocaleString("es-ES",{style:"currency",currency:"EUR"});
+}
+
+function guardar(){
+  localStorage.setItem("taxiMinimalV4IA", JSON.stringify(servicios));
+}
+
+function hablar(texto){
+  if("speechSynthesis" in window){
+    speechSynthesis.cancel();
+    let voz = new SpeechSynthesisUtterance(texto);
+    voz.lang = "es-ES";
+    speechSynthesis.speak(voz);
+  }
+}
+
+function showPage(n){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("activeTab"));
+  document.getElementById("page"+n).classList.add("active");
+  document.getElementById("tab"+n).classList.add("activeTab");
+  render();
+}
+
+function addService(conVoz){
+  let origen = document.getElementById("origen").value.trim();
+  let destino = document.getElementById("destino").value.trim();
+  let importe = parseFloat(document.getElementById("importe").value);
+  let pago = document.getElementById("pago").value;
+
+  if(!origen || !destino || isNaN(importe)){
+    alert("Falta origen, destino o importe");
+    return;
+  }
+
+  servicios.push({
+    origen,destino,importe,pago,
+    fecha:hoyISO(),
+    hora:new Date().toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"})
+  });
+
+  guardar();
+
+  document.getElementById("origen").value="";
+  document.getElementById("destino").value="";
+  document.getElementById("importe").value="";
+
+  if(conVoz) hablar("Perfecto, servicio añadido.");
+  render();
+}
+
+function vozIA(){
+  const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  if(!Recognition){
+    let texto = prompt("Escribe: Aeropuerto a Mahón 35 visa");
+    if(texto) procesarTextoServicio(texto);
+    return;
+  }
+
+  let rec = new Recognition();
+  rec.lang = "es-ES";
+  rec.start();
+
+  rec.onresult = e => {
+    let texto = e.results[0][0].transcript;
+    procesarTextoServicio(texto);
+  };
+
+  rec.onerror = () => {
+    let texto = prompt("No pude escuchar. Escribe: Aeropuerto a Mahón 35 visa");
+    if(texto) procesarTextoServicio(texto);
+  };
+}
+
+function procesarTextoServicio(texto){
+  let t = texto.toLowerCase();
+  let numero = texto.match(/\d+([,.]\d+)?/);
+  let importe = numero ? parseFloat(numero[0].replace(",",".")) : "";
+
+  let pago = "Efectivo";
+  if(t.includes("visa") || t.includes("tarjeta")) pago = "Visa";
+  if(t.includes("bizum")) pago = "Bizum";
+  if(t.includes("bonoweb") || t.includes("bono web")) pago = "Bonoweb";
+  if(t.includes("abono")) pago = "Abono vuelos";
+
+  let limpio = texto
+    .replace(/\d+([,.]\d+)?/,"")
+    .replace(/euros|euro|visa|tarjeta|bizum|bonoweb|bono web|abono vuelos|abono|efectivo/gi,"");
+
+  let partes = limpio.split(" a ");
+
+  document.getElementById("origen").value = partes[0]?.trim() || "";
+  document.getElementById("destino").value = partes[1]?.trim() || "";
+  document.getElementById("importe").value = importe;
+  document.getElementById("pago").value = pago;
+
+  addService(true);
+}
+
+function filtrarFecha(fecha){
+  return servicios.filter(s=>s.fecha===fecha);
+}
+
+function total(lista){
+  return lista.reduce((a,s)=>a+s.importe,0);
+}
+
+function porPago(lista,pago){
+  return total(lista.filter(s=>s.pago===pago));
+}
+
+function render(){
+  let fecha = document.getElementById("fechaBuscar").value || hoyISO();
+  document.getElementById("fechaBuscar").value = fecha;
+
+  let hoy = filtrarFecha(hoyISO());
+  let tHoy = total(hoy);
+
+  document.getElementById("totalHoy").innerText = euro(tHoy);
+  document.getElementById("fraseHoy").innerText =
+    hoy.length ? `Hoy has trabajado ${hoy.length} servicios y has facturado ${euro(tHoy)}.` : "Hoy todavía no hay servicios.";
+
+  document.getElementById("pagosHoy").innerHTML = ["Efectivo","Visa","Bizum","Bonoweb","Abono vuelos"].map(p=>
+    `<div class="row"><span>${p}</span><b>${euro(porPago(hoy,p))}</b></div>`
+  ).join("");
+
+  let importes = hoy.map(s=>s.importe);
+  document.getElementById("statsHoy").innerHTML = `
+    <div class="row"><span>Servicio medio</span><b>${euro(hoy.length?tHoy/hoy.length:0)}</b></div>
+    <div class="row"><span>Mayor servicio</span><b>${euro(importes.length?Math.max(...importes):0)}</b></div>
+    <div class="row"><span>Primer servicio</span><b>${hoy[0]?.hora || "-"}</b></div>
+    <div class="row"><span>Último servicio</span><b>${hoy[hoy.length-1]?.hora || "-"}</b></div>
+  `;
+
+  let ult = servicios[servicios.length-1];
+  document.getElementById("ultimo").innerHTML = ult ?
+    `<b>${ult.origen} → ${ult.destino}</b><br>${euro(ult.importe)} · ${ult.pago} · ${ult.hora}` :
+    "Aún no hay servicios";
+
+  renderHistorial(fecha);
+  renderStats();
+}
+
+function renderHistorial(fecha){
+  let dia = filtrarFecha(fecha);
+  document.getElementById("resumenDia").innerHTML = resumenHTML(dia);
+
+  let d = new Date(fecha);
+  let day = d.getDay() || 7;
+  let monday = new Date(d);
+  monday.setDate(d.getDate() - day + 1);
+  let sunday = new Date(monday);
+  sunday.setDate(monday.getDate()+6);
+
+  let semana = servicios.filter(s=>{
+    let x = new Date(s.fecha);
+    return x>=monday && x<=sunday;
+  });
+
+  let mes = servicios.filter(s=>s.fecha.slice(0,7)===fecha.slice(0,7));
+
+  document.getElementById("resumenSemana").innerHTML = resumenHTML(semana);
+  document.getElementById("resumenMes").innerHTML = resumenHTML(mes);
+
+  document.getElementById("historial").innerHTML = dia.length ? dia.map((s,i)=>`
+    <div class="service">
+      <b>${s.hora} · ${s.origen} → ${s.destino}</b><br>
+      <span class="badge">${s.pago}</span>
+      <b style="float:right">${euro(s.importe)}</b>
+      <button class="secondary" onclick="borrarServicio('${s.fecha}',${i})">Borrar</button>
+    </div>
+  `).join("") : "<p class='small'>No hay servicios en este día.</p>";
+}
+
+function resumenHTML(lista){
+  return `
+    <div class="row"><span>Total</span><b>${euro(total(lista))}</b></div>
+    <div class="row"><span>Servicios</span><b>${lista.length}</b></div>
+    <div class="row"><span>Efectivo</span><b>${euro(porPago(lista,"Efectivo"))}</b></div>
+    <div class="row"><span>Visa</span><b>${euro(porPago(lista,"Visa"))}</b></div>
+    <div class="row"><span>Bizum</span><b>${euro(porPago(lista,"Bizum"))}</b></div>
+    <div class="row"><span>Bonoweb</span><b>${euro(porPago(lista,"Bonoweb"))}</b></div>
+    <div class="row"><span>Abono vuelos</span><b>${euro(porPago(lista,"Abono vuelos"))}</b></div>
+  `;
+}
+
+function renderStats(){
+  let t = total(servicios);
+  let mayor = servicios.length ? Math.max(...servicios.map(s=>s.importe)) : 0;
+  let medio = servicios.length ? t/servicios.length : 0;
+
+  document.getElementById("estadisticas").innerHTML = `
+    <div class="mini">Servicios<br><b>${servicios.length}</b></div>
+    <div class="mini">Total<br><b>${euro(t)}</b></div>
+    <div class="mini">Media<br><b>${euro(medio)}</b></div>
+    <div class="mini">Mayor<br><b>${euro(mayor)}</b></div>
+  `;
+
+  let pagos = ["Efectivo","Visa","Bizum","Bonoweb","Abono vuelos"];
+  let topPago = pagos.sort((a,b)=>porPago(servicios,b)-porPago(servicios,a))[0];
+
+  document.getElementById("records").innerHTML = `
+    <div class="row"><span>Método más usado</span><b>${topPago || "-"}</b></div>
+    <div class="row"><span>Mayor servicio</span><b>${euro(mayor)}</b></div>
+    <div class="row"><span>Total histórico</span><b>${euro(t)}</b></div>
+  `;
+}
+
+function cerrarDia(){
+  let hoy = filtrarFecha(hoyISO());
+  let t = total(hoy);
+  let p40 = t*0.4;
+  let p60 = t*0.6;
+  hablar("Cierre del día completado.");
+  alert(`Cierre del día\n\nTotal: ${euro(t)}\n40%: ${euro(p40)}\n60%: ${euro(p60)}`);
+}
+
+function borrarServicio(fecha,indexEnDia){
+  let listaDia = servicios.filter(s=>s.fecha===fecha);
+  let objetivo = listaDia[indexEnDia];
+  let indexReal = servicios.indexOf(objetivo);
+  if(indexReal>-1 && confirm("¿Borrar este servicio?")){
+    servicios.splice(indexReal,1);
+    guardar();
+    render();
+  }
+}
+
+function borrarTodo(){
+  if(confirm("¿Borrar todo?")){
+    servicios=[];
+    guardar();
+    render();
+  }
+}
+
+function ponerHoy(){
+  document.getElementById("fechaBuscar").value = hoyISO();
+  render();
+}
+
+function preguntarIA(){
+  let q = document.getElementById("preguntaIA").value.toLowerCase();
+  let hoy = filtrarFecha(hoyISO());
+  let fecha = document.getElementById("fechaBuscar").value || hoyISO();
+  let dia = filtrarFecha(fecha);
+
+  let respuesta = "No entendí la pregunta todavía.";
+
+  if(q.includes("hoy")){
+    respuesta = `Hoy llevas ${hoy.length} servicios y has facturado ${euro(total(hoy))}.`;
+  }else if(q.includes("día") || q.includes("dia")){
+    respuesta = `Ese día hiciste ${dia.length} servicios y facturaste ${euro(total(dia))}.`;
+  }else if(q.includes("efectivo")){
+    respuesta = `En efectivo llevas ${euro(porPago(hoy,"Efectivo"))} hoy.`;
+  }else if(q.includes("visa") || q.includes("tarjeta")){
+    respuesta = `En Visa llevas ${euro(porPago(hoy,"Visa"))} hoy.`;
+  }else if(q.includes("bizum")){
+    respuesta = `En Bizum llevas ${euro(porPago(hoy,"Bizum"))} hoy.`;
+  }else if(q.includes("total")){
+    respuesta = `Desde que empezaste llevas ${servicios.length} servicios y has facturado ${euro(total(servicios))}.`;
+  }
+
+  document.getElementById("respuestaIA").innerText = respuesta;
+  hablar(respuesta);
+}
+
+function vozPreguntaIA(){
+  const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  if(!Recognition){
+    let texto = prompt("Pregunta algo a la IA");
+    if(texto){
+      document.getElementById("preguntaIA").value = texto;
+      preguntarIA();
+    }
+    return;
+  }
+
+  let rec = new Recognition();
+  rec.lang = "es-ES";
+  rec.start();
+
+  rec.onresult = e => {
+    document.getElementById("preguntaIA").value = e.results[0][0].transcript;
+    preguntarIA();
+  };
+}
+
+render();
+</script>
+</body>
+</html>
