@@ -1,0 +1,244 @@
+from pathlib import Path
+
+html = r"""<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Voice Taxi Pro V11 Propietario</title>
+<meta name="theme-color" content="#0f172a">
+<style>
+:root{
+  --bg:#0f172a;--card:#1e293b;--text:#f8fafc;--muted:#cbd5e1;
+  --purple:#7c3aed;--blue:#2563eb;--green:#22c55e;--red:#ef4444;--gray:#64748b;
+}
+body.light{--bg:#f3f4f6;--card:#fff;--text:#111827;--muted:#475569}
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--bg);color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+  padding:24px 18px 80px;
+}
+.app{max-width:760px;margin:auto}
+h1{text-align:center;font-size:38px;margin:20px 0 26px;font-weight:900}
+.card{background:var(--card);border-radius:26px;padding:24px;margin:18px 0;box-shadow:0 10px 28px rgba(0,0,0,.18)}
+h2{margin:0 0 18px;font-size:25px}
+button{border:0;border-radius:20px;padding:17px 14px;font-size:19px;font-weight:800;color:#fff;background:var(--purple);width:100%;margin:8px 0}
+.btn-blue{background:var(--blue)}.btn-green{background:var(--green)}.btn-red{background:var(--red)}.btn-gray{background:var(--gray)}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.grid button{margin:0;min-height:74px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+input,select{width:100%;padding:16px;border-radius:18px;border:2px solid #cbd5e1;font-size:20px;margin:8px 0;background:#fff;color:#111827}
+.small{font-size:17px;color:var(--muted);line-height:1.4}.big{font-size:28px;font-weight:900}
+.topStats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.stat{background:rgba(255,255,255,.06);padding:14px;border-radius:18px}
+body.light .stat{background:#f1f5f9}
+.pill{background:#334155;color:white;padding:12px 14px;border-radius:16px;display:inline-block;font-weight:800;margin:4px}
+body.light .pill{background:#e5e7eb;color:#111827}
+.progress{height:24px;background:#334155;border-radius:999px;overflow:hidden;margin:12px 0}.bar{height:100%;width:0;background:linear-gradient(90deg,#22c55e,#84cc16)}
+.service{border:1px solid rgba(255,255,255,.14);border-radius:18px;padding:14px;margin:10px 0;background:rgba(255,255,255,.04)}
+body.light .service{border-color:#e5e7eb;background:#f8fafc}
+.actions{display:flex;gap:8px}.actions button{font-size:14px;padding:10px;border-radius:12px}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}.tabs button{font-size:16px;padding:12px;border-radius:14px;margin:0;background:#475569}.tabs button.active{background:var(--purple)}
+table{width:100%;border-collapse:collapse;font-size:17px}td,th{padding:10px;border-bottom:1px solid rgba(255,255,255,.12);text-align:left}td:last-child,th:last-child{text-align:right;font-weight:900}
+body.light td,body.light th{border-bottom:1px solid #e5e7eb}
+@media(max-width:430px){h1{font-size:31px}.row{grid-template-columns:1fr}.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+<h1>🎙️🚕 Voice Taxi Pro V11 Propietario</h1>
+<button class="btn-gray" onclick="toggleTheme()">🌙 Modo oscuro/claro</button>
+
+<div class="card">
+<h2>🚖 Taxi en marcha</h2>
+<div class="topStats">
+<div class="stat">Servicios<br><span class="big" id="statServicios">0</span></div>
+<div class="stat">Facturación<br><span class="big" id="statTotal">0.00 €</span></div>
+<div class="stat">Último<br><span class="big" id="statUltimo">--:--</span></div>
+<div class="stat">Objetivo<br><span class="big" id="statObjetivo">0%</span></div>
+</div>
+<p class="small" id="estadoDia">🔴 Todavía sin servicios.</p>
+</div>
+
+<div class="card">
+<h2>🎙️ IA Conversacional</h2>
+<button onclick="escucharServicio()">🎙️ Escuchar servicio</button>
+<button onclick="escucharGasto()">🎙️ Escuchar gasto</button>
+<p class="small">Ej: “He llevado un cliente de Mercadal a Fornells, 32 euros con visa”.</p>
+<div class="service" id="ultimoBox">Último servicio escuchado: ninguno</div>
+<button class="btn-blue" onclick="repetirUltimo()">🔁 Repetir servicio</button>
+</div>
+
+<div class="card">
+<h2>➕ Añadir servicio</h2>
+<div class="row"><input id="origen" placeholder="Origen"><input id="destino" placeholder="Destino"></div>
+<div class="row"><input id="importe" type="number" step="0.01" placeholder="Importe €">
+<select id="metodo"><option>Efectivo</option><option>Visa</option><option>Bonos</option><option>Bizum</option><option>Bono Vuelos</option></select></div>
+<button class="btn-green" onclick="addServicio()">✅ Añadir servicio</button>
+</div>
+
+<div class="card">
+<h2>⚡ Menorca rápido</h2>
+<div class="grid">
+<button class="btn-blue" onclick="quick('Mercadal')">⛰️ Mercadal</button>
+<button class="btn-blue" onclick="quick('Fornells')">⚓ Fornells</button>
+<button class="btn-blue" onclick="quick('Son Parc')">🌲 Son Parc</button>
+<button class="btn-blue" onclick="quick('Arenal d’en Castell')">🌊 Arenal d’en Castell</button>
+<button class="btn-blue" onclick="quick('Sa Roca')">🏡 Sa Roca</button>
+<button class="btn-blue" onclick="quick('Playas Norte')">🏖️ Playas Norte</button>
+</div>
+</div>
+
+<div class="card">
+<h2>🎯 Objetivo diario</h2>
+<input id="objetivo" type="number" value="200" onchange="guardar();render()">
+<div class="progress"><div class="bar" id="bar"></div></div>
+<p id="objetivoTxt">Llevas 0.00 €.</p>
+</div>
+
+<div class="card">
+<h2>💸 Gastos</h2>
+<div class="row"><input id="gastoConcepto" placeholder="Concepto"><input id="gastoImporte" type="number" step="0.01" placeholder="Importe €"></div>
+<button class="btn-red" onclick="addGasto()">➖ Añadir gasto</button>
+</div>
+
+<div class="card">
+<h2>📊 Totales por método</h2>
+<div class="tabs">
+<button id="tabDia" class="active" onclick="setPeriodo('dia')">Hoy</button>
+<button id="tabSemana" onclick="setPeriodo('semana')">Semana</button>
+<button id="tabMes" onclick="setPeriodo('mes')">Mes</button>
+</div>
+<div id="totalesPeriodo"></div>
+</div>
+
+<div class="card">
+<h2>📊 Resumen diario propietario</h2>
+<div id="resumen"></div>
+<button class="btn-gray" onclick="cerrarDia()">🔒 Cerrar día</button>
+<button class="btn-red" onclick="borrarTodo()">🗑️ Borrar día actual</button>
+</div>
+
+<div class="card"><h2>📋 Servicios de hoy</h2><div id="lista"></div></div>
+<div class="card"><h2>📅 Historial</h2><div id="historial"></div></div>
+</div>
+
+<script>
+let servicios=JSON.parse(localStorage.getItem('prop_v11_servicios')||'[]');
+let gastos=JSON.parse(localStorage.getItem('prop_v11_gastos')||'[]');
+let historial=JSON.parse(localStorage.getItem('prop_v11_historial')||'[]');
+let ultimo=JSON.parse(localStorage.getItem('prop_v11_ultimo')||'null');
+let periodo='dia';
+const metodos=['Efectivo','Visa','Bonos','Bizum','Bono Vuelos'];
+const today=()=>new Date().toISOString().slice(0,10);
+const hora=()=>new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'});
+const money=n=>(Number(n)||0).toFixed(2)+' €';
+
+function normalizarMetodo(m){
+  const x=String(m||'').toLowerCase();
+  if(x.includes('visa'))return'Visa';
+  if(x.includes('bizum'))return'Bizum';
+  if(x.includes('vueling')||x.includes('vuelos')||x.includes('vuelo'))return'Bono Vuelos';
+  if(x.includes('bono'))return'Bonos';
+  return'Efectivo';
+}
+function guardar(){
+  localStorage.setItem('prop_v11_servicios',JSON.stringify(servicios));
+  localStorage.setItem('prop_v11_gastos',JSON.stringify(gastos));
+  localStorage.setItem('prop_v11_historial',JSON.stringify(historial));
+  localStorage.setItem('prop_v11_ultimo',JSON.stringify(ultimo));
+  localStorage.setItem('prop_v11_objetivo',document.getElementById('objetivo').value);
+}
+function beep(freq=660){
+  try{
+    const ctx=new (window.AudioContext||window.webkitAudioContext)();
+    const o=ctx.createOscillator(),g=ctx.createGain();
+    o.frequency.value=freq;o.connect(g);g.connect(ctx.destination);g.gain.setValueAtTime(.07,ctx.currentTime);o.start();o.stop(ctx.currentTime+.1);
+  }catch(e){}
+}
+function toggleTheme(){document.body.classList.toggle('light');localStorage.setItem('prop_v11_theme',document.body.classList.contains('light')?'light':'dark')}
+function quick(dest){document.getElementById('destino').value=dest;document.getElementById('importe').focus()}
+function addServicio(obj){
+  const s=obj||{id:Date.now(),fecha:today(),hora:hora(),origen:origen.value.trim()||'Sin origen',destino:destino.value.trim()||'Sin destino',importe:parseFloat(importe.value||0),metodo:metodo.value};
+  s.metodo=normalizarMetodo(s.metodo);
+  if(!s.importe||s.importe<=0){alert('Pon un importe correcto');return}
+  servicios.push(s);ultimo=s;origen.value='';destino.value='';importe.value='';guardar();beep(740);render();
+}
+function repetirUltimo(){if(!ultimo){alert('No hay último servicio');return}addServicio({...ultimo,id:Date.now(),fecha:today(),hora:hora()})}
+function addGasto(){
+  const g={id:Date.now(),fecha:today(),hora:hora(),concepto:gastoConcepto.value||'Gasto',importe:parseFloat(gastoImporte.value||0)};
+  if(!g.importe||g.importe<=0){alert('Pon un gasto correcto');return}
+  gastos.push(g);gastoConcepto.value='';gastoImporte.value='';guardar();beep(330);render();
+}
+function delServicio(id){servicios=servicios.filter(s=>s.id!==id);guardar();render()}
+function editServicio(id){const s=servicios.find(x=>x.id===id);if(!s)return;const n=prompt('Nuevo importe:',s.importe);if(n!==null){s.importe=parseFloat(n)||s.importe;guardar();render()}}
+function borrarTodo(){if(confirm('¿Borrar servicios y gastos de hoy?')){servicios=[];gastos=[];guardar();render()}}
+function cerrarDia(){
+  const total=servicios.reduce((a,s)=>a+s.importe,0);
+  if(total<=0){alert('No hay servicios para cerrar');return}
+  historial.unshift({fecha:today(),servicios:[...servicios],gastos:[...gastos],total});
+  servicios=[];gastos=[];guardar();beep(920);render();
+}
+function escucharServicio(){
+  const Rec=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!Rec){alert('Tu navegador no permite reconocimiento de voz aquí.');return}
+  const r=new Rec();r.lang='es-ES';r.start();
+  r.onresult=e=>{
+    const t=e.results[0][0].transcript.toLowerCase();
+    const im=(t.match(/(\d+[,.]?\d*)/)||[])[1]||0;
+    let met='Efectivo'; if(t.includes('visa'))met='Visa'; if(t.includes('bizum'))met='Bizum'; if(t.includes('vueling')||t.includes('vuelo'))met='Bono Vuelos'; else if(t.includes('bono'))met='Bonos';
+    let ori='Sin origen',des='Sin destino';
+    if(t.includes(' de ')&&t.includes(' a ')){let p=t.split(' de ')[1].split(' a ');ori=p[0].trim();des=(p[1]||'').replace(/\d+.*/,'').replace(/con.*/,'').trim()}
+    addServicio({id:Date.now(),fecha:today(),hora:hora(),origen:ori,destino:des,importe:parseFloat(String(im).replace(',','.')),metodo:met});
+  }
+}
+function escucharGasto(){
+  const Rec=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!Rec){alert('Tu navegador no permite reconocimiento de voz aquí.');return}
+  const r=new Rec();r.lang='es-ES';r.start();
+  r.onresult=e=>{const t=e.results[0][0].transcript.toLowerCase();const im=(t.match(/(\d+[,.]?\d*)/)||[])[1]||0;gastos.push({id:Date.now(),fecha:today(),hora:hora(),concepto:t,importe:parseFloat(String(im).replace(',','.'))});guardar();render()}
+}
+function inicioSemana(d){const x=new Date(d);const day=(x.getDay()+6)%7;x.setDate(x.getDate()-day);x.setHours(0,0,0,0);return x}
+function entraPeriodo(fecha){
+  const f=new Date((fecha||today())+'T12:00:00'),now=new Date();
+  if(periodo==='dia')return(fecha||today())===today();
+  if(periodo==='semana')return inicioSemana(f).toISOString().slice(0,10)===inicioSemana(now).toISOString().slice(0,10);
+  return f.getFullYear()===now.getFullYear()&&f.getMonth()===now.getMonth();
+}
+function serviciosPeriodo(){
+  const cerrados=historial.flatMap(d=>(d.servicios||[]).map(s=>({...s,fecha:s.fecha||d.fecha})));
+  return [...servicios,...cerrados].filter(s=>entraPeriodo(s.fecha||today()));
+}
+function setPeriodo(p){
+  periodo=p;tabDia.classList.toggle('active',p==='dia');tabSemana.classList.toggle('active',p==='semana');tabMes.classList.toggle('active',p==='mes');render();
+}
+function renderTotales(){
+  const arr=serviciosPeriodo();
+  const total=arr.reduce((a,s)=>a+(Number(s.importe)||0),0);
+  const filas=metodos.map(m=>`<tr><td>${m}</td><td>${money(arr.filter(s=>normalizarMetodo(s.metodo)===m).reduce((a,s)=>a+(Number(s.importe)||0),0))}</td></tr>`).join('');
+  const titulo=periodo==='dia'?'Total de hoy':periodo==='semana'?'Total de esta semana':'Total de este mes';
+  totalesPeriodo.innerHTML=`<p class="small">${titulo}</p><table><tr><th>Método</th><th>Total</th></tr>${filas}<tr><th>TOTAL</th><th>${money(total)}</th></tr></table>`;
+}
+function render(){
+  const obj=parseFloat(objetivo.value||200);
+  const total=servicios.reduce((a,s)=>a+s.importe,0);
+  const gastoTotal=gastos.reduce((a,g)=>a+g.importe,0);
+  const neto=total-gastoTotal;
+  statServicios.textContent=servicios.length;statTotal.textContent=money(total);statUltimo.textContent=servicios.length?servicios[servicios.length-1].hora:'--:--';statObjetivo.textContent=Math.round(total/(obj||1)*100)+'%';
+  estadoDia.textContent=total>=obj?'🟢 Objetivo conseguido. Muy buen día.':total>obj*.5?'🟡 Vas bien, sigue así.':'🔴 Todavía queda para el objetivo.';
+  bar.style.width=Math.min(100,total/(obj||1)*100)+'%';
+  objetivoTxt.textContent=`Llevas ${money(total)}. Te faltan ${money(Math.max(0,obj-total))} para llegar a ${money(obj)}.`;
+  const por=m=>servicios.filter(s=>normalizarMetodo(s.metodo)===m).reduce((a,s)=>a+s.importe,0);
+  resumen.innerHTML=`<span class="pill">Servicios: ${servicios.length}</span><span class="pill">Total: ${money(total)}</span><span class="pill">Gastos: ${money(gastoTotal)}</span><span class="pill">Beneficio: ${money(neto)}</span><br><span class="pill">Efectivo: ${money(por('Efectivo'))}</span><span class="pill">Visa: ${money(por('Visa'))}</span><span class="pill">Bonos: ${money(por('Bonos'))}</span><span class="pill">Bizum: ${money(por('Bizum'))}</span><span class="pill">Bono Vuelos: ${money(por('Bono Vuelos'))}</span>`;
+  lista.innerHTML=servicios.length?servicios.map(s=>`<div class="service"><b>${s.hora}</b> — ${s.origen} ➜ ${s.destino}<br>💶 ${money(s.importe)} · ${normalizarMetodo(s.metodo)}<div class="actions"><button class="btn-blue" onclick="editServicio(${s.id})">✏️ Editar</button><button class="btn-red" onclick="delServicio(${s.id})">🗑️ Borrar</button></div></div>`).join(''):'<p class="small">Todavía no hay servicios hoy.</p>';
+  ultimoBox.innerHTML=ultimo?`Último servicio escuchado:<br><b>${ultimo.origen} ➜ ${ultimo.destino}</b><br>${money(ultimo.importe)} · ${normalizarMetodo(ultimo.metodo)} · ${ultimo.hora}`:'Último servicio escuchado: ninguno';
+  historial.innerHTML=historial.length?historial.map(d=>`<div class="service"><b>${d.fecha}</b> — ${money(d.total)} · ${d.servicios.length} servicios<details><summary>Ver detalles</summary>${d.servicios.map(s=>`<p>${s.hora} · ${s.origen} ➜ ${s.destino} · ${money(s.importe)} · ${normalizarMetodo(s.metodo)}</p>`).join('')}</details></div>`).join(''):'<p class="small">Sin días cerrados todavía.</p>';
+  renderTotales();guardar();
+}
+window.onload=()=>{if(localStorage.getItem('prop_v11_theme')==='light')document.body.classList.add('light');objetivo.value=localStorage.getItem('prop_v11_objetivo')||200;render()}
+</script>
+</body>
+</html>"""
+
+path = Path("/mnt/data/Index11Propietario.html")
+path.write_text(html, encoding="utf-8")
+print(path)
