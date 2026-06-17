@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Voice Taxi Pro V11 Propietario</title>
+<style>
+body{margin:0;background:#0f172a;color:white;font-family:Arial;padding:20px}
+.app{max-width:700px;margin:auto}
+h1{text-align:center;font-size:34px}
+.card{background:#1e293b;border-radius:24px;padding:22px;margin:18px 0}
+button{width:100%;padding:16px;margin:7px 0;border:0;border-radius:18px;background:#7c3aed;color:white;font-size:19px;font-weight:bold}
+.blue{background:#2563eb}.green{background:#22c55e}.red{background:#ef4444}.gray{background:#64748b}
+input,select{width:100%;padding:15px;margin:7px 0;border-radius:16px;font-size:18px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.box{background:#334155;border-radius:16px;padding:12px;margin:6px 0}
+.pill{display:inline-block;background:#334155;border-radius:14px;padding:10px;margin:4px;font-weight:bold}
+table{width:100%;border-collapse:collapse}
+td,th{padding:10px;border-bottom:1px solid #475569}
+td:last-child,th:last-child{text-align:right}
+</style>
+</head>
+<body>
+<div class="app">
+
+<h1>🎙️🚕 Voice Taxi Pro V11 Propietario</h1>
+
+<div class="card">
+<h2>🚖 Taxi en marcha</h2>
+<div class="box">Servicios hoy: <b id="serviciosHoy">0</b></div>
+<div class="box">Total hoy: <b id="totalHoy">0.00 €</b></div>
+<div class="box">Gastos hoy: <b id="gastosHoy">0.00 €</b></div>
+<div class="box">Beneficio: <b id="beneficioHoy">0.00 €</b></div>
+</div>
+
+<div class="card">
+<h2>➕ Añadir servicio</h2>
+<div class="row">
+<input id="origen" placeholder="Origen">
+<input id="destino" placeholder="Destino">
+</div>
+<div class="row">
+<input id="importe" type="number" step="0.01" placeholder="Importe €">
+<select id="metodo">
+<option>Efectivo</option>
+<option>Visa</option>
+<option>Bonos</option>
+<option>Bizum</option>
+<option>Bono vuelos</option>
+</select>
+</div>
+<button class="green" onclick="addServicio()">✅ Añadir servicio</button>
+</div>
+
+<div class="card">
+<h2>⚡ Menorca rápido</h2>
+<div class="grid">
+<button class="blue" onclick="dest('Mercadal')">⛰️ Mercadal</button>
+<button class="blue" onclick="dest('Fornells')">⚓ Fornells</button>
+<button class="blue" onclick="dest('Son Parc')">🌲 Son Parc</button>
+<button class="blue" onclick="dest('Arenal d’en Castell')">🌊 Arenal d’en Castell</button>
+<button class="blue" onclick="dest('Sa Roca')">🏡 Sa Roca</button>
+<button class="blue" onclick="dest('Playas Norte')">🏖️ Playas Norte</button>
+</div>
+</div>
+
+<div class="card">
+<h2>💸 Añadir gasto</h2>
+<div class="row">
+<input id="gastoTexto" placeholder="Concepto">
+<input id="gastoImporte" type="number" step="0.01" placeholder="Importe €">
+</div>
+<button class="red" onclick="addGasto()">➖ Añadir gasto</button>
+</div>
+
+<div class="card">
+<h2>📊 Totales por método</h2>
+<button onclick="periodo='dia';render()">Hoy</button>
+<button onclick="periodo='semana';render()">Semana</button>
+<button onclick="periodo='mes';render()">Mes</button>
+<div id="totalesMetodo"></div>
+</div>
+
+<div class="card">
+<h2>📋 Servicios de hoy</h2>
+<div id="lista"></div>
+<button class="gray" onclick="cerrarDia()">🔒 Cerrar día</button>
+<button class="red" onclick="borrarHoy()">🗑️ Borrar día actual</button>
+</div>
+
+<div class="card">
+<h2>📅 Historial</h2>
+<div id="historial"></div>
+</div>
+
+</div>
+
+<script>
+let servicios=JSON.parse(localStorage.getItem("prop_servicios")||"[]");
+let gastos=JSON.parse(localStorage.getItem("prop_gastos")||"[]");
+let historial=JSON.parse(localStorage.getItem("prop_historial")||"[]");
+let periodo="dia";
+let metodos=["Efectivo","Visa","Bonos","Bizum","Bono vuelos"];
+
+function hoy(){return new Date().toISOString().slice(0,10)}
+function euro(n){return (Number(n)||0).toFixed(2)+" €"}
+function hora(){return new Date().toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"})}
+
+function guardar(){
+localStorage.setItem("prop_servicios",JSON.stringify(servicios));
+localStorage.setItem("prop_gastos",JSON.stringify(gastos));
+localStorage.setItem("prop_historial",JSON.stringify(historial));
+}
+
+function dest(d){
+document.getElementById("destino").value=d;
+document.getElementById("importe").focus();
+}
+
+function addServicio(){
+let origen=document.getElementById("origen").value||"Sin origen";
+let destino=document.getElementById("destino").value||"Sin destino";
+let importe=parseFloat(document.getElementById("importe").value||0);
+let metodo=document.getElementById("metodo").value;
+if(importe<=0){alert("Pon un importe correcto");return}
+servicios.push({id:Date.now(),fecha:hoy(),hora:hora(),origen,destino,importe,metodo});
+document.getElementById("origen").value="";
+document.getElementById("destino").value="";
+document.getElementById("importe").value="";
+guardar();render();
+}
+
+function addGasto(){
+let texto=document.getElementById("gastoTexto").value||"Gasto";
+let importe=parseFloat(document.getElementById("gastoImporte").value||0);
+if(importe<=0){alert("Pon un gasto correcto");return}
+gastos.push({id:Date.now(),fecha:hoy(),hora:hora(),texto,importe});
+document.getElementById("gastoTexto").value="";
+document.getElementById("gastoImporte").value="";
+guardar();render();
+}
+
+function borrarServicio(id){
+servicios=servicios.filter(s=>s.id!==id);
+guardar();render();
+}
+
+function borrarHoy(){
+if(confirm("¿Borrar servicios y gastos de hoy?")){
+servicios=[];gastos=[];guardar();render();
+}
+}
+
+function cerrarDia(){
+let total=servicios.reduce((a,s)=>a+s.importe,0);
+if(total<=0){alert("No hay servicios para cerrar");return}
+historial.unshift({fecha:hoy(),servicios:[...servicios],gastos:[...gastos],total});
+servicios=[];gastos=[];guardar();render();
+}
+
+function inicioSemana(f){
+let d=new Date(f);let dia=(d.getDay()+6)%7;
+d.setDate(d.getDate()-dia);
+return d.toISOString().slice(0,10);
+}
+
+function entra(fecha){
+let ahora=new Date();
+let f=new Date(fecha+"T12:00:00");
+if(periodo==="dia")return fecha===hoy();
+if(periodo==="semana")return inicioSemana(f)===inicioSemana(ahora);
+return f.getFullYear()===ahora.getFullYear()&&f.getMonth()===ahora.getMonth();
+}
+
+function serviciosPeriodo(){
+let cerrados=[];
+historial.forEach(d=>{
+(d.servicios||[]).forEach(s=>{
+cerrados.push({...s,fecha:s.fecha||d.fecha});
+});
+});
+return [...servicios,...cerrados].filter(s=>entra(s.fecha));
+}
+
+function render(){
+let total=servicios.reduce((a,s)=>a+s.importe,0);
+let gasto= gastos.reduce((a,g)=>a+g.importe,0);
+document.getElementById("serviciosHoy").innerText=servicios.length;
+document.getElementById("totalHoy").innerText=euro(total);
+document.getElementById("gastosHoy").innerText=euro(gasto);
+document.getElementById("beneficioHoy").innerText=euro(total-gasto);
+
+document.getElementById("lista").innerHTML=servicios.length?servicios.map(s=>`
+<div class="box">
+<b>${s.hora}</b> — ${s.origen} ➜ ${s.destino}<br>
+💶 ${euro(s.importe)} · ${s.metodo}
+<button class="red" onclick="borrarServicio(${s.id})">🗑️ Borrar</button>
+</div>`).join(""):"Sin servicios todavía.";
+
+let arr=serviciosPeriodo();
+let sumaTotal=arr.reduce((a,s)=>a+s.importe,0);
+let titulo=periodo==="dia"?"Hoy":periodo==="semana"?"Esta semana":"Este mes";
+let tabla=`<h3>${titulo}</h3><table><tr><th>Método</th><th>Total</th></tr>`;
+metodos.forEach(m=>{
+let suma=arr.filter(s=>s.metodo===m).reduce((a,s)=>a+s.importe,0);
+tabla+=`<tr><td>${m}</td><td>${euro(suma)}</td></tr>`;
+});
+tabla+=`<tr><th>TOTAL</th><th>${euro(sumaTotal)}</th></tr></table>`;
+document.getElementById("totalesMetodo").innerHTML=tabla;
+
+document.getElementById("historial").innerHTML=historial.length?historial.map(d=>`
+<div class="box">
+<b>${d.fecha}</b> — ${euro(d.total)} · ${d.servicios.length} servicios
+</div>`).join(""):"Sin días cerrados.";
+}
+
+render();
+</script>
+</body>
+</html>
