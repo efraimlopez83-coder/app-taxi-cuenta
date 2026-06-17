@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Taxi Minimal Tabs</title>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+  background:#0b1220;
+  color:#f8fafc;
+  padding:18px 16px 90px;
+}
+
+.app{
+  max-width:560px;
+  margin:auto;
+}
+
+h1{
+  font-size:28px;
+  text-align:center;
+  margin:14px 0 4px;
+}
+
+.sub{
+  text-align:center;
+  color:#94a3b8;
+  margin-bottom:18px;
+}
+
+.page{
+  display:none;
+}
+
+.page.active{
+  display:block;
+}
+
+.card{
+  background:#111827;
+  border:1px solid #1f2937;
+  border-radius:22px;
+  padding:18px;
+  margin:14px 0;
+}
+
+h2{
+  margin:0 0 14px;
+  font-size:23px;
+}
+
+input,select{
+  width:100%;
+  padding:16px;
+  border-radius:16px;
+  border:1px solid #334155;
+  background:#020617;
+  color:white;
+  font-size:18px;
+  margin:7px 0;
+}
+
+button{
+  width:100%;
+  border:0;
+  border-radius:16px;
+  padding:15px;
+  font-size:18px;
+  font-weight:800;
+  color:white;
+  background:#2563eb;
+  margin:7px 0;
+}
+
+.green{background:#16a34a}
+.red{background:#dc2626}
+.gray{background:#475569}
+
+.grid2{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+.stat{
+  background:#020617;
+  border:1px solid #1e293b;
+  border-radius:18px;
+  padding:14px;
+}
+
+.label{
+  color:#94a3b8;
+  font-size:14px;
+}
+
+.value{
+  font-size:25px;
+  font-weight:900;
+  margin-top:4px;
+}
+
+.item{
+  background:#020617;
+  border:1px solid #1e293b;
+  border-radius:16px;
+  padding:13px;
+  margin:9px 0;
+}
+
+.small{
+  color:#94a3b8;
+  font-size:15px;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:8px;
+}
+
+td,th{
+  padding:10px;
+  border-bottom:1px solid #1e293b;
+  text-align:left;
+}
+
+td:last-child,th:last-child{
+  text-align:right;
+  font-weight:900;
+}
+
+.bottomNav{
+  position:fixed;
+  left:0;
+  right:0;
+  bottom:0;
+  background:#020617;
+  border-top:1px solid #1e293b;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  padding:8px 8px calc(8px + env(safe-area-inset-bottom));
+  z-index:20;
+}
+
+.bottomNav button{
+  background:transparent;
+  color:#94a3b8;
+  font-size:13px;
+  padding:9px 4px;
+  border-radius:14px;
+  margin:0;
+}
+
+.bottomNav button.active{
+  background:#1e293b;
+  color:white;
+}
+
+.quick button{
+  font-size:16px;
+  padding:13px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+  <h1>🚕 Taxi Minimal Pro</h1>
+  <div class="sub">Versión por pestañas</div>
+
+  <section id="pageServicio" class="page active">
+    <div class="card">
+      <h2>➕ Añadir servicio</h2>
+
+      <input id="importe" type="number" step="0.01" placeholder="Importe €">
+
+      <select id="metodo">
+        <option>Efectivo</option>
+        <option>Visa</option>
+        <option>Bizum</option>
+        <option>Bonos</option>
+        <option>Bono vuelos</option>
+      </select>
+
+      <div class="grid2">
+        <input id="origen" placeholder="Origen">
+        <input id="destino" placeholder="Destino">
+      </div>
+
+      <button class="green" onclick="addServicio()">✅ Añadir servicio</button>
+    </div>
+
+    <div class="card">
+      <h2>⚡ Destinos rápidos</h2>
+
+      <div class="grid2 quick">
+        <button onclick="rapido('Mercadal')">Mercadal</button>
+        <button onclick="rapido('Fornells')">Fornells</button>
+        <button onclick="rapido('Son Parc')">Son Parc</button>
+        <button onclick="rapido('Arenal d’en Castell')">Arenal</button>
+        <button onclick="rapido('Sa Roca')">Sa Roca</button>
+        <button onclick="rapido('Playas Norte')">Playas Norte</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>📋 Últimos servicios</h2>
+      <div id="ultimosServicios" class="small">Todavía no hay servicios.</div>
+    </div>
+  </section>
+
+  <section id="pageResumen" class="page">
+    <div class="card">
+      <h2>📊 Resumen de hoy</h2>
+
+      <div class="grid2">
+        <div class="stat">
+          <div class="label">Total</div>
+          <div class="value" id="totalHoy">0.00 €</div>
+        </div>
+
+        <div class="stat">
+          <div class="label">Servicios</div>
+          <div class="value" id="numServicios">0</div>
+        </div>
+
+        <div class="stat">
+          <div class="label">Gastos</div>
+          <div class="value" id="totalGastos">0.00 €</div>
+        </div>
+
+        <div class="stat">
+          <div class="label">Beneficio</div>
+          <div class="value" id="beneficio">0.00 €</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>💸 Añadir gasto</h2>
+
+      <div class="grid2">
+        <input id="gastoTexto" placeholder="Concepto">
+        <input id="gastoImporte" type="number" step="0.01" placeholder="Importe €">
+      </div>
+
+      <button class="red" onclick="addGasto()">➖ Añadir gasto</button>
+    </div>
+
+    <div class="card">
+      <h2>💳 Métodos hoy</h2>
+      <div id="tablaHoy"></div>
+    </div>
+  </section>
+
+  <section id="pageTotales" class="page">
+    <div class="card">
+      <h2>📈 Totales</h2>
+
+      <div class="grid2">
+        <button onclick="setPeriodo('dia')">Hoy</button>
+        <button onclick="setPeriodo('semana')">Semana</button>
+        <button onclick="setPeriodo('mes')">Mes</button>
+      </div>
+
+      <div id="tablaTotales"></div>
+    </div>
+  </section>
+
+  <section id="pageHistorial" class="page">
+    <div class="card">
+      <h2>📅 Historial</h2>
+
+      <button class="green" onclick="cerrarDia()">🔒 Cerrar día</button>
+      <button class="red" onclick="borrarHoy()">🗑️ Borrar día actual</button>
+
+      <div id="historial" class="small">Sin días cerrados.</div>
+    </div>
+  </section>
+
+</div>
+
+<nav class="bottomNav">
+  <button id="navServicio" class="active" onclick="showPage('Servicio')">➕<br>Servicio</button>
+  <button id="navResumen" onclick="showPage('Resumen')">📊<br>Resumen</button>
+  <button id="navTotales" onclick="showPage('Totales')">📈<br>Totales</button>
+  <button id="navHistorial" onclick="showPage('Historial')">📅<br>Historial</button>
+</nav>
+
+<script>
+let servicios = JSON.parse(localStorage.getItem("tmt_servicios") || "[]");
+let gastos = JSON.parse(localStorage.getItem("tmt_gastos") || "[]");
+let historial = JSON.parse(localStorage.getItem("tmt_historial") || "[]");
+
+let periodo = "dia";
+
+const metodos = [
+  "Efectivo",
+  "Visa",
+  "Bizum",
+  "Bonos",
+  "Bono vuelos"
+];
+
+function hoy(){
+  return new Date().toISOString().slice(0,10);
+}
+
+function hora(){
+  return new Date().toLocaleTimeString("es-ES",{
+    hour:"2-digit",
+    minute:"2-digit"
+  });
+}
+
+function euro(n){
+  return (Number(n) || 0).toFixed(2) + " €";
+}
+
+function guardar(){
+  localStorage.setItem("tmt_servicios", JSON.stringify(servicios));
+  localStorage.setItem("tmt_gastos", JSON.stringify(gastos));
+  localStorage.setItem("tmt_historial", JSON.stringify(historial));
+}
+
+function showPage(nombre){
+  ["Servicio","Resumen","Totales","Historial"].forEach(p=>{
+    document.getElementById("page"+p).classList.remove("active");
+    document.getElementById("nav"+p).classList.remove("active");
+  });
+
+  document.getElementById("page"+nombre).classList.add("active");
+  document.getElementById("nav"+nombre).classList.add("active");
+
+  render();
+}
+
+function rapido(destino){
+  document.getElementById("destino").value = destino;
+  document.getElementById("importe").focus();
+}
+
+function addServicio(){
+  const importe = parseFloat(document.getElementById("importe").value || 0);
+
+  if(importe <= 0){
+    alert("Pon un importe correcto");
+    return;
+  }
+
+  servicios.push({
+    id: Date.now(),
+    fecha: hoy(),
+    hora: hora(),
+    importe: importe,
+    metodo: document.getElementById("metodo").value,
+    origen: document.getElementById("origen").value || "Sin origen",
+    destino: document.getElementById("destino").value || "Sin destino"
+  });
+
+  document.getElementById("importe").value = "";
+  document.getElementById("origen").value = "";
+  document.getElementById("destino").value = "";
+
+  guardar();
+  render();
+}
+
+function addGasto(){
+  const importe = parseFloat(document.getElementById("gastoImporte").value || 0);
+
+  if(importe <= 0){
+    alert("Pon un gasto correcto");
+    return;
+  }
+
+  gastos.push({
+    id: Date.now(),
+    fecha: hoy(),
+    hora: hora(),
+    texto: document.getElementById("gastoTexto").value || "Gasto",
+    importe: importe
+  });
+
+  document.getElementById("gastoTexto").value = "";
+  document.getElementById("gastoImporte").value = "";
+
+  guardar();
+  render();
+}
+
+function borrarServicio(id){
+  servicios = servicios.filter(s => s.id !== id);
+  guardar();
+  render();
+}
+
+function borrarHoy(){
+  if(confirm("¿Borrar servicios y gastos de hoy?")){
+    servicios = [];
+    gastos = [];
+    guardar();
+    render();
+  }
+}
+
+function cerrarDia(){
+  const total = servicios.reduce((a,s)=>a+s.importe,0);
+
+  if(total <= 0){
+    alert("No hay servicios para cerrar");
+    return;
+  }
+
+  historial.unshift({
+    fecha: hoy(),
+    total: total,
+    servicios: [...servicios],
+    gastos: [...gastos]
+  });
+
+  servicios = [];
+  gastos = [];
+
+  guardar();
+  render();
+}
+
+function inicioSemana(fecha){
+  const d = new Date(fecha);
+  const dia = (d.getDay()+6)%7;
+  d.setDate(d.getDate()-dia);
+  return d.toISOString().slice(0,10);
+}
+
+function entra(fecha){
+  const ahora = new Date();
+  const f = new Date(fecha+"T12:00:00");
+
+  if(periodo === "dia"){
+    return fecha === hoy();
+  }
+
+  if(periodo === "semana"){
+    return inicioSemana(f) === inicioSemana(ahora);
+  }
+
+  return f.getFullYear() === ahora.getFullYear() &&
+         f.getMonth() === ahora.getMonth();
+}
+
+function serviciosPeriodo(){
+  let cerrados = [];
+
+  historial.forEach(d => {
+    (d.servicios || []).forEach(s => {
+      cerrados.push({
+        ...s,
+        fecha: s.fecha || d.fecha
+      });
+    });
+  });
+
+  return [...servicios, ...cerrados].filter(s => entra(s.fecha || hoy()));
+}
+
+function setPeriodo(p){
+  periodo = p;
+  render();
+}
+
+function tablaPorMetodo(arr){
+  let tabla = "<table><tr><th>Método</th><th>Total</th></tr>";
+
+  metodos.forEach(m => {
+    const suma = arr
+      .filter(s => s.metodo === m)
+      .reduce((a,s)=>a+s.importe,0);
+
+    tabla += `<tr><td>${m}</td><td>${euro(suma)}</td></tr>`;
+  });
+
+  const total = arr.reduce((a,s)=>a+s.importe,0);
+
+  tabla += `<tr><th>TOTAL</th><th>${euro(total)}</th></tr></table>`;
+
+  return tabla;
+}
+
+function render(){
+  const total = servicios.reduce((a,s)=>a+s.importe,0);
+  const totalG = gastos.reduce((a,g)=>a+g.importe,0);
+
+  document.getElementById("totalHoy").innerText = euro(total);
+  document.getElementById("numServicios").innerText = servicios.length;
+  document.getElementById("totalGastos").innerText = euro(totalG);
+  document.getElementById("beneficio").innerText = euro(total-totalG);
+
+  document.getElementById("ultimosServicios").innerHTML = servicios.length
+    ? servicios.slice().reverse().slice(0,5).map(s => `
+      <div class="item">
+        <b>${s.hora}</b> · ${s.origen} ➜ ${s.destino}<br>
+        ${euro(s.importe)} · ${s.metodo}
+        <button class="red" onclick="borrarServicio(${s.id})">Borrar</button>
+      </div>
+    `).join("")
+    : "Todavía no hay servicios.";
+
+  document.getElementById("tablaHoy").innerHTML = tablaPorMetodo(servicios);
+
+  const arr = serviciosPeriodo();
+
+  const titulo =
+    periodo === "dia" ? "Hoy" :
+    periodo === "semana" ? "Esta semana" :
+    "Este mes";
+
+  document.getElementById("tablaTotales").innerHTML =
+    `<p class="small">${titulo}</p>` + tablaPorMetodo(arr);
+
+  document.getElementById("historial").innerHTML = historial.length
+    ? historial.map(d => `
+      <div class="item">
+        <b>${d.fecha}</b><br>
+        ${euro(d.total)} · ${d.servicios.length} servicios
+      </div>
+    `).join("")
+    : "Sin días cerrados.";
+}
+
+render();
+</script>
+
+</body>
+</html>
