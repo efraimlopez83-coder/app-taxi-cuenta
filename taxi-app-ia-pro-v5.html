@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Taxi App IA PRO V5</title>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  background:#0b1020;
+  color:white;
+}
+header{
+  padding:18px;
+  text-align:center;
+  background:linear-gradient(135deg,#111827,#1e3a8a);
+}
+header h1{margin:0;font-size:24px}
+header p{margin:5px 0 0;color:#cbd5e1}
+.tabs{
+  display:flex;
+  overflow-x:auto;
+  background:#020617;
+  border-bottom:1px solid #1e293b;
+}
+.tabs button{
+  flex:1;
+  padding:13px;
+  background:none;
+  border:0;
+  color:#94a3b8;
+  font-weight:700;
+}
+.tabs button.active{
+  color:white;
+  border-bottom:3px solid #38bdf8;
+}
+.page{display:none;padding:16px}
+.page.active{display:block}
+.card{
+  background:#111827;
+  border:1px solid #1f2937;
+  border-radius:18px;
+  padding:16px;
+  margin-bottom:14px;
+  box-shadow:0 8px 25px rgba(0,0,0,.25);
+}
+input,select,textarea{
+  width:100%;
+  padding:13px;
+  margin:7px 0;
+  border-radius:12px;
+  border:1px solid #334155;
+  background:#020617;
+  color:white;
+  font-size:16px;
+}
+button{
+  border:0;
+  border-radius:13px;
+  padding:13px;
+  font-weight:800;
+  cursor:pointer;
+}
+.primary{background:#0ea5e9;color:white;width:100%}
+.success{background:#22c55e;color:white;width:100%}
+.danger{background:#ef4444;color:white;width:100%}
+.warn{background:#f59e0b;color:#111827;width:100%}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.smallbtn{background:#1e293b;color:white;margin:4px;padding:10px}
+.service{
+  background:#020617;
+  border:1px solid #1e293b;
+  padding:12px;
+  border-radius:14px;
+  margin:8px 0;
+}
+.total{
+  font-size:24px;
+  font-weight:900;
+  color:#38bdf8;
+}
+.green{color:#22c55e}
+.red{color:#f87171}
+.yellow{color:#facc15}
+.muted{color:#94a3b8}
+.chatbox{
+  height:260px;
+  overflow:auto;
+  background:#020617;
+  border-radius:14px;
+  padding:12px;
+}
+.msg{margin:8px 0;padding:10px;border-radius:12px}
+.user{background:#1e40af}
+.bot{background:#1f2937}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🚕 Taxi App IA PRO V5</h1>
+  <p>Servicios · IA · Voz · 40/60 · Historial · Jornada</p>
+</header>
+
+<div class="tabs">
+  <button class="active" onclick="tab('servicio',this)">Servicio</button>
+  <button onclick="tab('resumen',this)">Resumen</button>
+  <button onclick="tab('historial',this)">Historial</button>
+  <button onclick="tab('stats',this)">Estadísticas</button>
+  <button onclick="tab('ia',this)">IA Chat</button>
+</div>
+
+<section id="servicio" class="page active">
+
+  <div class="card">
+    <h2>🟢 Jornada</h2>
+    <div class="grid">
+      <button class="success" onclick="abrirJornada()">Abrir jornada</button>
+      <button class="danger" onclick="cerrarJornada()">Cerrar jornada</button>
+    </div>
+    <p id="estadoJornada" class="muted"></p>
+  </div>
+
+  <div class="card">
+    <h2>🎙️ Añadir con IA</h2>
+    <textarea id="iaTexto" rows="3" placeholder="Ej: Llevé a una chica de Mercadal a Alaior y cobré 15,75 con Visa"></textarea>
+    <div class="grid">
+      <button class="primary" onclick="procesarIA()">Añadir con IA</button>
+      <button class="warn" onclick="escuchar()">🎤 Hablar</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>➕ Añadir manual</h2>
+    <input id="origen" placeholder="Origen">
+    <input id="destino" placeholder="Destino">
+    <input id="importe" type="number" step="0.01" placeholder="Importe €">
+    <select id="pago">
+      <option>Efectivo</option>
+      <option>Visa</option>
+      <option>Bizum</option>
+      <option>Bonoweb</option>
+      <option>Bono Vueling</option>
+      <option>Factura</option>
+    </select>
+    <button class="primary" onclick="addServicio()">Añadir servicio</button>
+  </div>
+
+  <div class="card">
+    <h2>⭐ Favoritos</h2>
+    <button class="smallbtn" onclick="setOrigen('Mercadal')">Origen Mercadal</button>
+    <button class="smallbtn" onclick="setDestino('Mercadal')">Destino Mercadal</button>
+    <button class="smallbtn" onclick="setOrigen('Alaior')">Origen Alaior</button>
+    <button class="smallbtn" onclick="setDestino('Alaior')">Destino Alaior</button>
+    <button class="smallbtn" onclick="setDestino('Fornells')">Fornells</button>
+    <button class="smallbtn" onclick="setDestino('Son Parc')">Son Parc</button>
+    <button class="smallbtn" onclick="setDestino('Arenal d’en Castell')">Arenal</button>
+    <button class="smallbtn" onclick="setDestino('Aeropuerto')">Aeropuerto</button>
+  </div>
+
+</section>
+
+<section id="resumen" class="page">
+  <div class="card">
+    <h2>📊 Resumen de hoy</h2>
+    <div id="resumenHoy"></div>
+  </div>
+
+  <div class="card">
+    <h2>⛽ Gastos del día</h2>
+    <input id="gastoConcepto" placeholder="Concepto: gasolina, limpieza, mecánico...">
+    <input id="gastoImporte" type="number" step="0.01" placeholder="Importe gasto €">
+    <button class="warn" onclick="addGasto()">Añadir gasto</button>
+    <div id="listaGastos"></div>
+  </div>
+</section>
+
+<section id="historial" class="page">
+  <div class="card">
+    <h2>📅 Historial</h2>
+    <input type="date" id="fechaHistorial" onchange="verHistorial()">
+    <div id="historialDia"></div>
+  </div>
+</section>
+
+<section id="stats" class="page">
+  <div class="card">
+    <h2>📈 Estadísticas</h2>
+    <div id="estadisticas"></div>
+  </div>
+</section>
+
+<section id="ia" class="page">
+  <div class="card">
+    <h2>🧠 IA Conversacional</h2>
+    <div id="chat" class="chatbox"></div>
+    <input id="preguntaIA" placeholder="Ej: ¿Cuánto hice hoy en Visa?">
+    <button class="primary" onclick="preguntarIA()">Preguntar</button>
+  </div>
+</section>
+
+<script>
+let servicios = JSON.parse(localStorage.getItem("serviciosV5") || "[]");
+let gastos = JSON.parse(localStorage.getItem("gastosV5") || "[]");
+let jornada = JSON.parse(localStorage.getItem("jornadaV5") || "null");
+
+function guardar(){
+  localStorage.setItem("serviciosV5", JSON.stringify(servicios));
+  localStorage.setItem("gastosV5", JSON.stringify(gastos));
+  localStorage.setItem("jornadaV5", JSON.stringify(jornada));
+  actualizarTodo();
+}
+
+function hoy(){
+  return new Date().toISOString().slice(0,10);
+}
+
+function hora(){
+  return new Date().toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"});
+}
+
+function dinero(n){
+  return Number(n || 0).toFixed(2).replace(".",",") + " €";
+}
+
+function hablar(t){
+  if("speechSynthesis" in window){
+    const u = new SpeechSynthesisUtterance(t);
+    u.lang = "es-ES";
+    speechSynthesis.speak(u);
+  }
+}
+
+function tab(id,btn){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  btn.classList.add("active");
+  actualizarTodo();
+}
+
+function setOrigen(v){document.getElementById("origen").value=v}
+function setDestino(v){document.getElementById("destino").value=v}
+
+function abrirJornada(){
+  jornada = {fecha:hoy(), inicio:hora(), abierta:true};
+  hablar("Jornada iniciada");
+  guardar();
+}
+
+function cerrarJornada(){
+  const r = calcularDia(hoy());
+  jornada = {fecha:hoy(), cierre:hora(), abierta:false};
+  hablar(`Jornada cerrada. Hoy hiciste ${r.cantidad} servicios. Total ${r.total.toFixed(2)} euros.`);
+  guardar();
+}
+
+function addServicio(){
+  const origen = document.getElementById("origen").value.trim();
+  const destino = document.getElementById("destino").value.trim();
+  const importe = parseFloat(document.getElementById("importe").value);
+  const pago = document.getElementById("pago").value;
+
+  if(!origen || !destino || !importe){
+    alert("Falta origen, destino o importe");
+    return;
+  }
+
+  servicios.push({
+    fecha:hoy(),
+    hora:hora(),
+    origen,
+    destino,
+    importe,
+    pago
+  });
+
+  document.getElementById("origen").value="";
+  document.getElementById("destino").value="";
+  document.getElementById("importe").value="";
+
+  hablar(`Servicio añadido. ${origen} a ${destino}. ${importe.toFixed(2)} euros con ${pago}`);
+  guardar();
+}
+
+function procesarIA(){
+  const txt = document.getElementById("iaTexto").value;
+  if(!txt.trim()) return;
+
+  let texto = txt.toLowerCase().replace(",",".");
+  let importe = texto.match(/(\d+(\.\d{1,2})?)/);
+  importe = importe ? parseFloat(importe[1]) : 0;
+
+  let pagos = ["efectivo","visa","bizum","bonoweb","bono vueling","factura"];
+  let pago = "Efectivo";
+  pagos.forEach(p=>{
+    if(texto.includes(p)) pago = p.replace(/\b\w/g,l=>l.toUpperCase());
+  });
+  if(pago === "Bono Vueling") pago = "Bono Vueling";
+
+  let origen = "";
+  let destino = "";
+
+  let match = texto.match(/de (.*?) (a|hasta) (.*?)( y| por| con| cobré| cobre|$)/);
+  if(match){
+    origen = limpiarLugar(match[1]);
+    destino = limpiarLugar(match[3]);
+  }
+
+  if(!origen) origen = "Sin origen";
+  if(!destino) destino = "Sin destino";
+
+  servicios.push({
+    fecha:hoy(),
+    hora:hora(),
+    origen,
+    destino,
+    importe,
+    pago
+  });
+
+  document.getElementById("iaTexto").value="";
+  hablar(`Servicio añadido. ${origen} a ${destino}. ${importe.toFixed(2)} euros con ${pago}`);
+  guardar();
+}
+
+function limpiarLugar(t){
+  return t.replace("desde","").replace("hasta","").trim()
+    .split(" ")
+    .map(w=>w.charAt(0).toUpperCase()+w.slice(1))
+    .join(" ");
+}
+
+function escuchar(){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){
+    alert("Tu navegador no permite reconocimiento de voz aquí. Prueba desde Safari/Chrome actualizado.");
+    return;
+  }
+  const rec = new SR();
+  rec.lang = "es-ES";
+  rec.start();
+  rec.onresult = e => {
+    document.getElementById("iaTexto").value = e.results[0][0].transcript;
+    procesarIA();
+  };
+}
+
+function addGasto(){
+  const concepto = document.getElementById("gastoConcepto").value.trim();
+  const importe = parseFloat(document.getElementById("gastoImporte").value);
+  if(!concepto || !importe){
+    alert("Falta concepto o importe");
+    return;
+  }
+  gastos.push({fecha:hoy(), hora:hora(), concepto, importe});
+  document.getElementById("gastoConcepto").value="";
+  document.getElementById("gastoImporte").value="";
+  guardar();
+}
+
+function calcularDia(fecha){
+  const lista = servicios.filter(s=>s.fecha===fecha);
+  const gs = gastos.filter(g=>g.fecha===fecha);
+  const total = lista.reduce((a,s)=>a+s.importe,0);
+  const totalGastos = gs.reduce((a,g)=>a+g.importe,0);
+
+  const metodos = {};
+  lista.forEach(s=>{
+    metodos[s.pago]=(metodos[s.pago]||0)+s.importe;
+  });
+
+  const trabajador = total * 0.40;
+  const propietarioBruto = total * 0.60;
+  const propietarioFinal = propietarioBruto - totalGastos;
+
+  return {lista,gs,total,totalGastos,metodos,trabajador,propietarioBruto,propietarioFinal,cantidad:lista.length};
+}
+
+function actualizarResumen(){
+  const r = calcularDia(hoy());
+  let html = `
+    <p class="total">${dinero(r.total)}</p>
+    <p>Servicios: <b>${r.cantidad}</b></p>
+    <p>Trabajador 40%: <b class="green">${dinero(r.trabajador)}</b></p>
+    <p>Propietario 60% bruto: <b>${dinero(r.propietarioBruto)}</b></p>
+    <p>Gastos: <b class="red">-${dinero(r.totalGastos)}</b></p>
+    <p>Propietario final: <b class="yellow">${dinero(r.propietarioFinal)}</b></p>
+    <hr>
+    <h3>Métodos de pago</h3>
+  `;
+
+  ["Efectivo","Visa","Bizum","Bonoweb","Bono Vueling","Factura"].forEach(m=>{
+    html += `<p>${m}: <b>${dinero(r.metodos[m]||0)}</b></p>`;
+  });
+
+  html += `<hr><h3>Servicios</h3>`;
+  r.lista.slice().reverse().forEach(s=>{
+    html += `<div class="service">${s.hora} · ${s.origen} → ${s.destino}<br><b>${dinero(s.importe)}</b> · ${s.pago}</div>`;
+  });
+
+  document.getElementById("resumenHoy").innerHTML = html;
+
+  document.getElementById("listaGastos").innerHTML = r.gs.map(g=>
+    `<div class="service">${g.hora} · ${g.concepto}<br><b class="red">-${dinero(g.importe)}</b></div>`
+  ).join("");
+}
+
+function verHistorial(){
+  const f = document.getElementById("fechaHistorial").value;
+  const r = calcularDia(f);
+  let html = `<p class="total">${dinero(r.total)}</p>
+  <p>Servicios: ${r.cantidad}</p>
+  <p>Trabajador: ${dinero(r.trabajador)}</p>
+  <p>Propietario final: ${dinero(r.propietarioFinal)}</p><hr>`;
+  r.lista.forEach(s=>{
+    html += `<div class="service">${s.hora} · ${s.origen} → ${s.destino}<br>${dinero(s.importe)} · ${s.pago}</div>`;
+  });
+  document.getElementById("historialDia").innerHTML = html;
+}
+
+function actualizarStats(){
+  const dias = {};
+  servicios.forEach(s=>{
+    dias[s.fecha]=(dias[s.fecha]||0)+s.importe;
+  });
+
+  let mejorDia = "-";
+  let mejorTotal = 0;
+  Object.keys(dias).forEach(d=>{
+    if(dias[d]>mejorTotal){
+      mejorTotal=dias[d];
+      mejorDia=d;
+    }
+  });
+
+  const totalGlobal = servicios.reduce((a,s)=>a+s.importe,0);
+
+  document.getElementById("estadisticas").innerHTML = `
+    <p>Total registrado: <b class="total">${dinero(totalGlobal)}</b></p>
+    <p>Total servicios: <b>${servicios.length}</b></p>
+    <p>Mejor día: <b>${mejorDia}</b></p>
+    <p>Importe mejor día: <b>${dinero(mejorTotal)}</b></p>
+  `;
+}
+
+function preguntarIA(){
+  const q = document.getElementById("preguntaIA").value.trim();
+  if(!q) return;
+  const r = calcularDia(hoy());
+  let a = "No entendí bien la pregunta.";
+
+  const t = q.toLowerCase();
+
+  if(t.includes("hoy") || t.includes("llevo")){
+    a = `Hoy llevas ${dinero(r.total)} en ${r.cantidad} servicios.`;
+  }
+  if(t.includes("visa")){
+    a = `Hoy llevas ${dinero(r.metodos["Visa"]||0)} en Visa.`;
+  }
+  if(t.includes("efectivo")){
+    a = `Hoy llevas ${dinero(r.metodos["Efectivo"]||0)} en efectivo.`;
+  }
+  if(t.includes("trabajador")){
+    a = `Al trabajador le corresponden ${dinero(r.trabajador)}.`;
+  }
+  if(t.includes("propietario")){
+    a = `El propietario se queda con ${dinero(r.propietarioFinal)} después de gastos.`;
+  }
+  if(t.includes("gastos")){
+    a = `Hoy tienes ${dinero(r.totalGastos)} en gastos.`;
+  }
+
+  document.getElementById("chat").innerHTML += `
+    <div class="msg user">${q}</div>
+    <div class="msg bot">${a}</div>
+  `;
+  document.getElementById("preguntaIA").value="";
+  hablar(a);
+}
+
+function actualizarTodo(){
+  document.getElementById("estadoJornada").innerHTML = jornada
+    ? jornada.abierta
+      ? `Jornada abierta desde las <b>${jornada.inicio}</b>`
+      : `Última jornada cerrada a las <b>${jornada.cierre}</b>`
+    : "Jornada todavía no iniciada";
+
+  if(!document.getElementById("fechaHistorial").value){
+    document.getElementById("fechaHistorial").value = hoy();
+  }
+
+  actualizarResumen();
+  verHistorial();
+  actualizarStats();
+}
+
+actualizarTodo();
+</script>
+
+</body>
+</html>
