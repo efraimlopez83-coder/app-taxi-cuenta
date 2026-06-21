@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Taxi App IA PRO V6</title>
+<style>
+body{font-family:Arial,sans-serif;background:#0f172a;color:white;margin:0}
+header{background:#111827;padding:18px;text-align:center;font-size:22px;font-weight:bold}
+nav{display:flex;position:fixed;bottom:0;width:100%;background:#111827}
+nav button{flex:1;padding:14px;background:none;color:white;border:0;font-size:13px}
+nav button.active{background:#2563eb}
+section{display:none;padding:18px 18px 90px}
+section.active{display:block}
+.card{background:#1e293b;border-radius:16px;padding:16px;margin-bottom:14px}
+input,select,button{width:100%;padding:14px;margin:8px 0;border-radius:12px;border:0;font-size:16px}
+button{background:#2563eb;color:white;font-weight:bold}
+.danger{background:#dc2626}
+.good{background:#16a34a}
+.warn{background:#f59e0b;color:#111}
+.small{font-size:13px;color:#cbd5e1}
+.service{border-bottom:1px solid #334155;padding:10px 0}
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#16a34a;color:white;padding:16px 24px;border-radius:14px;font-weight:bold;display:none;z-index:99}
+</style>
+</head>
+<body>
+
+<div id="toast" class="toast">✅ Servicio añadido</div>
+
+<header>🚖 Taxi App IA PRO V6</header>
+
+<section id="servicio" class="active">
+  <div class="card">
+    <h2>Añadir servicio</h2>
+    <input id="origen" placeholder="Origen">
+    <input id="destino" placeholder="Destino">
+    <input id="importe" type="number" step="0.01" placeholder="Importe €">
+    <select id="pago">
+      <option>Efectivo</option>
+      <option>Visa</option>
+      <option>Bizum</option>
+      <option>Bonoweb</option>
+      <option>Bono Vueling</option>
+    </select>
+    <button class="good" onclick="addService()">✅ Añadir servicio</button>
+    <button onclick="startVoice()">🎙️ Añadir por voz</button>
+    <p class="small">Ejemplo: “De Mercadal a Alaior, 15,75 con Visa”</p>
+  </div>
+
+  <div class="card">
+    <h3>Último servicio</h3>
+    <div id="lastService">Todavía no hay servicios.</div>
+    <button class="warn" onclick="editLastService()">✏️ Modificar último servicio</button>
+  </div>
+</section>
+
+<section id="resumen">
+  <div class="card">
+    <h2>Resumen</h2>
+    <div id="summary"></div>
+  </div>
+</section>
+
+<section id="historial">
+  <div class="card">
+    <h2>Historial</h2>
+    <div id="history"></div>
+    <button class="danger" onclick="clearHistory()">🗑️ Borrar historial completo</button>
+  </div>
+</section>
+
+<section id="ia">
+  <div class="card">
+    <h2>IA Taxi</h2>
+    <p>Puedes dictar frases completas y la app intentará detectar origen, destino, importe y método de pago.</p>
+    <button onclick="startVoice()">🎙️ Hablar con IA</button>
+  </div>
+</section>
+
+<nav>
+  <button class="active" onclick="showTab('servicio',this)">Servicio</button>
+  <button onclick="showTab('resumen',this)">Resumen</button>
+  <button onclick="showTab('historial',this)">Historial</button>
+  <button onclick="showTab('ia',this)">IA</button>
+</nav>
+
+<script>
+let services = JSON.parse(localStorage.getItem("taxi_v6_services")) || [];
+
+function save(){
+  localStorage.setItem("taxi_v6_services", JSON.stringify(services));
+  render();
+}
+
+function showToast(text){
+  const toast=document.getElementById("toast");
+  toast.textContent=text;
+  toast.style.display="block";
+  setTimeout(()=>toast.style.display="none",2500);
+}
+
+function speak(text){
+  try{
+    const msg=new SpeechSynthesisUtterance(text);
+    msg.lang="es-ES";
+    speechSynthesis.speak(msg);
+  }catch(e){}
+}
+
+function addService(){
+  const origen=document.getElementById("origen").value.trim();
+  const destino=document.getElementById("destino").value.trim();
+  const importe=parseFloat(document.getElementById("importe").value);
+  const pago=document.getElementById("pago").value;
+
+  if(!origen || !destino || isNaN(importe)){
+    showToast("⚠️ Falta origen, destino o importe");
+    speak("Faltan datos del servicio");
+    return;
+  }
+
+  const service={
+    origen,destino,importe,pago,
+    hora:new Date().toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"}),
+    fecha:new Date().toLocaleDateString("es-ES")
+  };
+
+  services.push(service);
+  document.getElementById("origen").value="";
+  document.getElementById("destino").value="";
+  document.getElementById("importe").value="";
+
+  save();
+  showToast("✅ Servicio añadido");
+  speak("Servicio añadido correctamente");
+}
+
+function startVoice(){
+  const SpeechRecognition=window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SpeechRecognition){
+    alert("Tu navegador no permite reconocimiento de voz. Prueba en Safari o Chrome.");
+    return;
+  }
+
+  const rec=new SpeechRecognition();
+  rec.lang="es-ES";
+  rec.start();
+
+  showToast("🎙️ Escuchando...");
+
+  rec.onresult=function(event){
+    const text=event.results[0][0].transcript.toLowerCase();
+    parseVoice(text);
+  };
+
+  rec.onerror=function(){
+    showToast("⚠️ No te he entendido");
+  };
+}
+
+function parseVoice(text){
+  let pago="Efectivo";
+  if(text.includes("visa") || text.includes("tarjeta")) pago="Visa";
+  if(text.includes("bizum")) pago="Bizum";
+  if(text.includes("bonoweb")) pago="Bonoweb";
+  if(text.includes("vueling") || text.includes("vuelo")) pago="Bono Vueling";
+
+  let importeMatch=text.match(/(\d+[,.]?\d*)/);
+  let importe=importeMatch ? parseFloat(importeMatch[1].replace(",",".")) : NaN;
+
+  let origen="";
+  let destino="";
+
+  let ruta=text.match(/de (.*?) a (.*?)(?: por| con| y|,|\.| \d|$)/);
+  if(ruta){
+    origen=ruta[1].trim();
+    destino=ruta[2].trim();
+  }
+
+  if(!origen) origen=prompt("No detecté el origen. Escríbelo:");
+  if(!destino) destino=prompt("No detecté el destino. Escríbelo:");
+  if(isNaN(importe)) importe=parseFloat(prompt("No detecté el importe. Escríbelo:"));
+
+  if(origen && destino && !isNaN(importe)){
+    document.getElementById("origen").value=capitalize(origen);
+    document.getElementById("destino").value=capitalize(destino);
+    document.getElementById("importe").value=importe;
+    document.getElementById("pago").value=pago;
+    addService();
+  }else{
+    showToast("⚠️ Servicio incompleto");
+    speak("No pude añadir el servicio porque faltan datos");
+  }
+}
+
+function capitalize(str){
+  return str.charAt(0).toUpperCase()+str.slice(1);
+}
+
+function editLastService(){
+  if(services.length===0){
+    alert("No hay ningún servicio para modificar.");
+    return;
+  }
+
+  const last=services[services.length-1];
+
+  const origen=prompt("Modificar origen:", last.origen);
+  const destino=prompt("Modificar destino:", last.destino);
+  const importe=parseFloat(prompt("Modificar importe:", last.importe));
+  const pago=prompt("Modificar método de pago:", last.pago);
+
+  if(origen && destino && !isNaN(importe) && pago){
+    services[services.length-1]={
+      ...last,
+      origen,
+      destino,
+      importe,
+      pago
+    };
+    save();
+    showToast("✏️ Último servicio modificado");
+    speak("Último servicio modificado");
+  }
+}
+
+function clearHistory(){
+  if(confirm("⚠️ ¿Seguro que quieres borrar TODO el historial? Esta acción no se puede deshacer.")){
+    services=[];
+    save();
+    showToast("🗑️ Historial borrado");
+    speak("Historial borrado. Semana nueva preparada");
+  }
+}
+
+function render(){
+  renderLast();
+  renderHistory();
+  renderSummary();
+}
+
+function renderLast(){
+  const div=document.getElementById("lastService");
+  if(services.length===0){
+    div.innerHTML="Todavía no hay servicios.";
+    return;
+  }
+
+  const s=services[services.length-1];
+  div.innerHTML=`
+    <strong>${s.origen} → ${s.destino}</strong><br>
+    ${s.importe.toFixed(2)} € · ${s.pago}<br>
+    <span class="small">${s.fecha} · ${s.hora}</span>
+  `;
+}
+
+function renderHistory(){
+  const div=document.getElementById("history");
+  if(services.length===0){
+    div.innerHTML="No hay servicios guardados.";
+    return;
+  }
+
+  div.innerHTML=services.slice().reverse().map(s=>`
+    <div class="service">
+      <strong>${s.origen} → ${s.destino}</strong><br>
+      ${s.importe.toFixed(2)} € · ${s.pago}<br>
+      <span class="small">${s.fecha} · ${s.hora}</span>
+    </div>
+  `).join("");
+}
+
+function renderSummary(){
+  const div=document.getElementById("summary");
+  let total=services.reduce((a,s)=>a+s.importe,0);
+  let trabajador=total*0.40;
+  let propietario=total*0.60;
+
+  const pagos={};
+  services.forEach(s=>{
+    pagos[s.pago]=(pagos[s.pago]||0)+s.importe;
+  });
+
+  div.innerHTML=`
+    <p><strong>Total:</strong> ${total.toFixed(2)} €</p>
+    <p><strong>40% trabajador:</strong> ${trabajador.toFixed(2)} €</p>
+    <p><strong>60% propietario:</strong> ${propietario.toFixed(2)} €</p>
+    <hr>
+    <h3>Por método de pago</h3>
+    ${Object.keys(pagos).map(p=>`<p>${p}: ${pagos[p].toFixed(2)} €</p>`).join("") || "Sin datos"}
+  `;
+}
+
+function showTab(id,btn){
+  document.querySelectorAll("section").forEach(s=>s.classList.remove("active"));
+  document.querySelectorAll("nav button").forEach(b=>b.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  btn.classList.add("active");
+  render();
+}
+
+render();
+</script>
+
+</body>
+</html>
