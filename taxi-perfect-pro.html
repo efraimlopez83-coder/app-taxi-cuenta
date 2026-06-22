@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Taxi Perfect PRO</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#060606;
+  --panel:#11100d;
+  --panel2:#18140c;
+  --gold:#f8c84a;
+  --gold2:#b8860b;
+  --cream:#fff3bf;
+  --muted:#9ca3af;
+  --line:#3b2d12;
+  --green:#22c55e;
+  --red:#ef4444;
+  --blue:#38bdf8;
+}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  background:radial-gradient(circle at top,#3a2a05 0,#060606 43%);
+  color:white;
+}
+header{
+  max-width:560px;
+  margin:auto;
+  padding:18px 15px 10px;
+}
+.brand{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+}
+.logo{display:flex;align-items:center;gap:12px}
+.icon{
+  width:55px;height:55px;border-radius:20px;
+  display:grid;place-items:center;
+  background:linear-gradient(135deg,var(--gold),#fff0a3,var(--gold2));
+  color:#161006;font-size:29px;
+  box-shadow:0 0 28px rgba(248,200,74,.3);
+}
+h1{margin:0;font-size:24px;color:var(--gold)}
+.sub{margin:3px 0 0;color:var(--cream);font-size:13px}
+.status{
+  text-align:right;
+  color:var(--muted);
+  font-size:12px;
+  font-weight:800;
+}
+main{max-width:560px;margin:auto;padding:0 14px 104px}
+.page{display:none}.page.active{display:block}
+.card{
+  background:rgba(17,16,13,.96);
+  border:1px solid var(--line);
+  border-radius:24px;
+  padding:16px;
+  margin-bottom:14px;
+  box-shadow:0 10px 28px rgba(0,0,0,.3);
+}
+.hero{
+  background:linear-gradient(145deg,#241b08,#0b0905);
+  border:1px solid var(--line);
+  border-radius:30px;
+  padding:18px;
+  margin:6px 0 14px;
+}
+.label{
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  color:var(--muted);
+  font-size:12px;
+  font-weight:900;
+}
+.bigTotal{
+  font-size:44px;
+  color:var(--gold);
+  font-weight:1000;
+  line-height:1;
+  margin:6px 0 12px;
+}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{
+  padding:7px 10px;
+  border-radius:999px;
+  background:#0b0905;
+  border:1px solid var(--line);
+  color:var(--cream);
+  font-weight:900;
+  font-size:12px;
+}
+h2,h3{margin:0 0 12px}
+input,select,textarea{
+  width:100%;
+  border:1px solid var(--line);
+  background:#080705;
+  color:white;
+  border-radius:16px;
+  padding:14px;
+  font-size:16px;
+  margin:7px 0 10px;
+}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--gold)}
+button{
+  border:0;
+  border-radius:17px;
+  padding:14px;
+  font-weight:950;
+  font-size:15px;
+}
+.btn{
+  width:100%;
+  background:linear-gradient(135deg,var(--gold),#fff0a3,var(--gold2));
+  color:#171100;
+  box-shadow:0 12px 26px rgba(248,200,74,.18);
+}
+.btn.dark{
+  background:#0b0905;
+  color:white;
+  border:1px solid var(--line);
+  box-shadow:none;
+}
+.btn.green{background:linear-gradient(135deg,#22c55e,#15803d);color:white}
+.btn.red{background:#7f1d1d;color:white}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.quick{
+  background:#0b0905;
+  border:1px solid var(--line);
+  color:var(--cream);
+  min-height:54px;
+}
+.quick.active{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#171100}
+.stat{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  padding:11px 0;
+  border-bottom:1px solid var(--line);
+}
+.stat:last-child{border-bottom:0}
+.stat b{color:var(--gold);white-space:nowrap}
+.service{
+  background:#080705;
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:13px;
+  margin:9px 0;
+}
+.service-title{font-weight:1000}
+.small{font-size:13px;color:var(--muted)}
+.badge{
+  display:inline-block;
+  margin-top:7px;
+  background:#2a210d;
+  border:1px solid var(--line);
+  color:var(--gold);
+  padding:5px 9px;
+  border-radius:999px;
+  font-weight:900;
+  font-size:12px;
+}
+.row{display:flex;gap:8px;margin-top:9px}
+.mini{
+  padding:9px 11px;
+  border-radius:12px;
+  background:#1f2937;
+  color:white;
+}
+.notice{
+  background:#241c0a;
+  border:1px solid var(--line);
+  color:#fff4bf;
+  border-radius:17px;
+  padding:12px;
+  margin-top:10px;
+}
+.tabs{
+  position:fixed;
+  bottom:0;left:0;right:0;
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  background:#060606;
+  border-top:1px solid var(--line);
+  padding-bottom:env(safe-area-inset-bottom);
+}
+.tabs button{
+  background:transparent;
+  color:#8b8376;
+  border-radius:0;
+  font-size:11px;
+  padding:10px 2px 12px;
+}
+.tabs button.active{color:var(--gold)}
+.segment{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+  margin-bottom:12px;
+}
+.segment button{
+  background:#0b0905;
+  border:1px solid var(--line);
+  color:var(--cream);
+}
+.segment button.active{
+  background:linear-gradient(135deg,var(--gold),var(--gold2));
+  color:#171100;
+}
+.copybox{
+  background:#080705;
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:12px;
+  white-space:pre-wrap;
+  color:#fff4bf;
+  min-height:120px;
+  font-size:14px;
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">
+    <div class="logo">
+      <div class="icon">ð</div>
+      <div>
+        <h1>Taxi Perfect PRO</h1>
+        <p class="sub">PRO Â· rÃ¡pida, clara y funcional</p>
+      </div>
+    </div>
+    <div class="status" id="statusBox">Jornada cerrada</div>
+  </div>
+</header>
+
+<main>
+<section id="inicio" class="page active">
+  <div class="hero">
+    <div class="label">Total de hoy</div>
+    <div class="bigTotal" id="heroTotal">0,00 â¬</div>
+    <div class="chips">
+      <span class="chip" id="heroServices">0 servicios</span>
+      <span class="chip" id="heroCash">Efectivo 0,00 â¬</span>
+      <span class="chip" id="heroCard">Visa 0,00 â¬</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Servicio rÃ¡pido</h2>
+    <textarea id="quickText" rows="2" placeholder="Ej: Mercadal a Alaior 15,75 visa"></textarea>
+    <div class="grid2">
+      <button class="btn dark" onclick="voice()">ðï¸ Hablar</button>
+      <button class="btn" onclick="addQuick()">â AÃ±adir</button>
+    </div>
+    <div id="lastResult"></div>
+  </div>
+
+  <div class="card">
+    <h3>Zonas rÃ¡pidas</h3>
+    <div class="grid3">
+      <button class="quick" onclick="appendPlace('Mercadal')">Mercadal</button>
+      <button class="quick" onclick="appendPlace('Alaior')">Alaior</button>
+      <button class="quick" onclick="appendPlace('Fornells')">Fornells</button>
+      <button class="quick" onclick="appendPlace('Son Parc')">Son Parc</button>
+      <button class="quick" onclick="appendPlace('Arenal')">Arenal</button>
+      <button class="quick" onclick="appendPlace('Aeropuerto')">Aeropuerto</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Jornada</h3>
+    <div class="grid2">
+      <button class="btn green" onclick="openShift()">Abrir</button>
+      <button class="btn red" onclick="closeShift()">Cerrar</button>
+    </div>
+  </div>
+</section>
+
+<section id="manual" class="page">
+  <div class="card">
+    <h2>AÃ±adir manual</h2>
+    <input id="origen" placeholder="Origen">
+    <input id="destino" placeholder="Destino">
+    <input id="importe" type="number" step="0.01" placeholder="Importe â¬">
+    <select id="pago">
+      <option>Efectivo</option>
+      <option>Visa</option>
+      <option>Bizum</option>
+      <option>Bonoweb</option>
+      <option>Bono Vueling</option>
+      <option>Factura</option>
+    </select>
+    <button class="btn" onclick="addManual()">AÃ±adir servicio</button>
+  </div>
+</section>
+
+<section id="resumen" class="page">
+  <div class="segment">
+    <button class="active" onclick="setRange('hoy',this)">Hoy</button>
+    <button onclick="setRange('semana',this)">Semana</button>
+    <button onclick="setRange('mes',this)">Mes</button>
+  </div>
+  <div class="card">
+    <h2 id="summaryTitle">Resumen de hoy</h2>
+    <div id="summary"></div>
+  </div>
+  <div class="card">
+    <h2>Gastos</h2>
+    <div class="grid3">
+      <button class="quick" onclick="setExpense('Gasolina')">Gasolina</button>
+      <button class="quick" onclick="setExpense('Limpieza')">Limpieza</button>
+      <button class="quick" onclick="setExpense('MecÃ¡nico')">MecÃ¡nico</button>
+    </div>
+    <input id="expenseName" placeholder="Concepto">
+    <input id="expenseAmount" type="number" step="0.01" placeholder="Importe â¬">
+    <button class="btn" onclick="addExpense()">AÃ±adir gasto</button>
+    <div id="expenseList"></div>
+  </div>
+  <div class="card">
+    <h2>Resumen para WhatsApp</h2>
+    <div class="copybox" id="copyBox"></div>
+    <button class="btn" onclick="copySummary()">Copiar resumen</button>
+  </div>
+</section>
+
+<section id="historial" class="page">
+  <div class="card">
+    <h2>Historial</h2>
+    <input type="date" id="historyDate" onchange="render()">
+    <div id="historyList"></div>
+  </div>
+</section>
+
+<section id="ajustes" class="page">
+  <div class="card">
+    <h2>Ajustes</h2>
+    <label>Nombre del conductor</label>
+    <input id="driver" placeholder="Ej: Efra">
+    <div class="grid2">
+      <div>
+        <label>% trabajador</label>
+        <input id="workerPct" type="number" value="40">
+      </div>
+      <div>
+        <label>% propietario</label>
+        <input id="ownerPct" type="number" value="60">
+      </div>
+    </div>
+    <button class="btn" onclick="saveSettings()">Guardar ajustes</button>
+    <button class="btn red" onclick="resetDemo()">Borrar datos</button>
+    <div class="notice">VersiÃ³n pensada para iPhone: rÃ¡pida, con una mano y sin aÃ±adir servicios por error al pulsar voz.</div>
+  </div>
+</section>
+</main>
+
+<nav class="tabs">
+  <button class="active" onclick="tab('inicio',this)">Inicio</button>
+  <button onclick="tab('manual',this)">Manual</button>
+  <button onclick="tab('resumen',this)">Resumen</button>
+  <button onclick="tab('historial',this)">Historial</button>
+  <button onclick="tab('ajustes',this)">Ajustes</button>
+</nav>
+
+<script>
+let services = JSON.parse(localStorage.getItem("taxiPerfectServices") || "[]");
+let expenses = JSON.parse(localStorage.getItem("taxiPerfectExpenses") || "[]");
+let settings = JSON.parse(localStorage.getItem("taxiPerfectSettings") || '{"driver":"","worker":40,"owner":60,"shift":false}');
+let range = "hoy";
+
+function save(){
+  localStorage.setItem("taxiPerfectServices", JSON.stringify(services));
+  localStorage.setItem("taxiPerfectExpenses", JSON.stringify(expenses));
+  localStorage.setItem("taxiPerfectSettings", JSON.stringify(settings));
+}
+function today(){return new Date().toISOString().slice(0,10)}
+function time(){return new Date().toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"})}
+function money(n){return Number(n||0).toFixed(2).replace(".",",")+" â¬"}
+function tab(id,btn){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  render();
+}
+function notify(txt){
+  document.getElementById("lastResult").innerHTML = `<div class="notice">${txt}</div>`;
+}
+function parseText(txt){
+  let lower = txt.toLowerCase().replace(",",".");
+  let amountMatch = lower.match(/(\d+(\.\d{1,2})?)/);
+  let amount = amountMatch ? parseFloat(amountMatch[1]) : 0;
+  let pay = "Efectivo";
+  if(lower.includes("visa") || lower.includes("tarjeta")) pay="Visa";
+  if(lower.includes("bizum")) pay="Bizum";
+  if(lower.includes("bonoweb")) pay="Bonoweb";
+  if(lower.includes("vueling") || lower.includes("vuelo")) pay="Bono Vueling";
+  if(lower.includes("factura")) pay="Factura";
+
+  let clean = txt.replace(/(\d+[,.]?\d*)/,"")
+    .replace(/con|en|por|desde|de|visa|tarjeta|bizum|bonoweb|vueling|vuelo|efectivo|factura|euros|euro/ig," ")
+    .replace(/\s+/g," ").trim();
+
+  let parts = clean.split(/\s+a\s+|\s+hasta\s+|\s+al\s+/i).map(x=>x.trim()).filter(Boolean);
+  if(parts.length < 2){
+    let words = clean.split(" ").filter(Boolean);
+    parts = [words[0] || "Origen", words.slice(1).join(" ") || "Destino"];
+  }
+  return {origin:cap(parts[0]), dest:cap(parts[1]), amount, pay, date:today(), time:time()};
+}
+function cap(s){
+  return String(s||"").split(" ").map(w=>w? w[0].toUpperCase()+w.slice(1).toLowerCase():w).join(" ");
+}
+function addQuick(){
+  const txt = document.getElementById("quickText").value.trim();
+  if(!txt){alert("Escribe o dicta un servicio");return}
+  const s = parseText(txt);
+  if(!s.amount){alert("Falta el importe");return}
+  services.push(s);
+  document.getElementById("quickText").value="";
+  notify(`â AÃ±adido: <b>${s.origin} â ${s.dest}</b><br>${money(s.amount)} Â· ${s.pay}`);
+  save(); render();
+}
+function addManual(){
+  const origin=document.getElementById("origen").value.trim();
+  const dest=document.getElementById("destino").value.trim();
+  const amount=parseFloat(document.getElementById("importe").value);
+  const pay=document.getElementById("pago").value;
+  if(!origin || !dest || !amount){alert("Falta origen, destino o importe");return}
+  services.push({origin,dest,amount,pay,date:today(),time:time()});
+  document.getElementById("origen").value="";
+  document.getElementById("destino").value="";
+  document.getElementById("importe").value="";
+  save(); render();
+}
+function appendPlace(p){
+  const el=document.getElementById("quickText");
+  el.value = el.value ? el.value + " a " + p : p;
+  el.focus();
+}
+function voice(){
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){alert("Voz no disponible en este navegador. Puedes escribirlo.");return}
+  const rec = new SR();
+  rec.lang="es-ES";
+  rec.start();
+  notify("ðï¸ Escuchando...");
+  rec.onresult = e => {
+    document.getElementById("quickText").value = e.results[0][0].transcript;
+    notify("â Voz capturada. Revisa y pulsa AÃ±adir.");
+  };
+}
+function openShift(){settings.shift=true;save();render()}
+function closeShift(){settings.shift=false;save();render()}
+function setRange(r,btn){
+  range=r;
+  document.querySelectorAll(".segment button").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  render();
+}
+function weekStart(){
+  let d=new Date();
+  let day=(d.getDay()+6)%7;
+  d.setDate(d.getDate()-day);
+  d.setHours(0,0,0,0);
+  return d;
+}
+function inRange(x){
+  if(range==="hoy") return x.date===today();
+  if(range==="mes") return x.date && x.date.slice(0,7)===today().slice(0,7);
+  let ws=weekStart();
+  let xd=new Date(x.date+"T12:00:00");
+  return xd>=ws && xd<=new Date();
+}
+function totals(list, exps){
+  let met={Efectivo:0,Visa:0,Bizum:0,Bonoweb:0,"Bono Vueling":0,Factura:0};
+  list.forEach(s=>met[s.pay]=(met[s.pay]||0)+s.amount);
+  let total=list.reduce((a,s)=>a+s.amount,0);
+  let gastos=exps.reduce((a,e)=>a+e.amount,0);
+  let worker=total*(Number(settings.worker||40)/100);
+  let ownerGross=total*(Number(settings.owner||60)/100);
+  return {met,total,gastos,worker,ownerGross,ownerFinal:ownerGross-gastos,count:list.length};
+}
+function setExpense(n){document.getElementById("expenseName").value=n}
+function addExpense(){
+  let name=document.getElementById("expenseName").value.trim();
+  let amount=parseFloat(document.getElementById("expenseAmount").value);
+  if(!name || !amount){alert("Falta concepto o importe");return}
+  expenses.push({name,amount,date:today(),time:time()});
+  document.getElementById("expenseName").value="";
+  document.getElementById("expenseAmount").value="";
+  save();render();
+}
+function delService(i){if(confirm("Â¿Borrar servicio?")){services.splice(i,1);save();render()}}
+function saveSettings(){
+  settings.driver=document.getElementById("driver").value.trim();
+  settings.worker=parseFloat(document.getElementById("workerPct").value||40);
+  settings.owner=parseFloat(document.getElementById("ownerPct").value||60);
+  save();render();alert("Ajustes guardados");
+}
+function resetDemo(){
+  if(confirm("Â¿Borrar todos los datos?")){
+    services=[]; expenses=[]; save(); render();
+  }
+}
+function copySummary(){
+  const text=document.getElementById("copyBox").textContent;
+  navigator.clipboard?.writeText(text).then(()=>alert("Resumen copiado")).catch(()=>alert("No se pudo copiar"));
+}
+function render(){
+  document.getElementById("statusBox").innerHTML = settings.shift ? "ð¢ Jornada abierta" : "Jornada cerrada";
+  document.getElementById("driver").value=settings.driver||"";
+  document.getElementById("workerPct").value=settings.worker||40;
+  document.getElementById("ownerPct").value=settings.owner||60;
+  if(!document.getElementById("historyDate").value) document.getElementById("historyDate").value=today();
+
+  let todayServices=services.filter(s=>s.date===today());
+  let todayExpenses=expenses.filter(e=>e.date===today());
+  let tday=totals(todayServices,todayExpenses);
+  document.getElementById("heroTotal").textContent=money(tday.total);
+  document.getElementById("heroServices").textContent=tday.count+" servicios";
+  document.getElementById("heroCash").textContent="Efectivo "+money(tday.met.Efectivo||0);
+  document.getElementById("heroCard").textContent="Visa "+money(tday.met.Visa||0);
+
+  let list=services.filter(inRange);
+  let exps=expenses.filter(inRange);
+  let t=totals(list,exps);
+  document.getElementById("summaryTitle").textContent = range==="hoy" ? "Resumen de hoy" : range==="semana" ? "Resumen semanal" : "Resumen mensual";
+  document.getElementById("summary").innerHTML = `
+    <div class="stat"><span>Total</span><b>${money(t.total)}</b></div>
+    <div class="stat"><span>Servicios</span><b>${t.count}</b></div>
+    <div class="stat"><span>Trabajador ${settings.worker}%</span><b>${money(t.worker)}</b></div>
+    <div class="stat"><span>Propietario ${settings.owner}% bruto</span><b>${money(t.ownerGross)}</b></div>
+    <div class="stat"><span>Gastos</span><b style="color:#f87171">-${money(t.gastos)}</b></div>
+    <div class="stat"><span>Propietario final</span><b>${money(t.ownerFinal)}</b></div>
+    <br>
+    ${Object.keys(t.met).map(k=>`<div class="stat"><span>${k}</span><b>${money(t.met[k])}</b></div>`).join("")}
+  `;
+  document.getElementById("expenseList").innerHTML = todayExpenses.length ? todayExpenses.slice().reverse().map(e=>`
+    <div class="service"><div class="service-title">${e.time} Â· ${e.name}</div><span class="badge">-${money(e.amount)}</span></div>
+  `).join("") : `<p class="small">Sin gastos hoy.</p>`;
+
+  document.getElementById("copyBox").textContent =
+`ð Taxi Perfect
+${document.getElementById("summaryTitle").textContent}
+
+Total: ${money(t.total)}
+Servicios: ${t.count}
+Efectivo: ${money(t.met.Efectivo)}
+Visa: ${money(t.met.Visa)}
+Bizum: ${money(t.met.Bizum)}
+Bonoweb: ${money(t.met.Bonoweb)}
+Bono Vueling: ${money(t.met["Bono Vueling"])}
+Factura: ${money(t.met.Factura)}
+
+Trabajador ${settings.worker}%: ${money(t.worker)}
+Propietario ${settings.owner}% bruto: ${money(t.ownerGross)}
+Gastos: ${money(t.gastos)}
+Propietario final: ${money(t.ownerFinal)}`;
+
+  let hd=document.getElementById("historyDate").value || today();
+  let hlist=services.filter(s=>s.date===hd);
+  document.getElementById("historyList").innerHTML = hlist.length ? hlist.slice().reverse().map(s=>{
+    let idx=services.indexOf(s);
+    return `<div class="service">
+      <div class="service-title">${s.time} Â· ${s.origin} â ${s.dest}</div>
+      <div class="small">${s.date}</div>
+      <span class="badge">${money(s.amount)} Â· ${s.pay}</span>
+      <div class="row"><button class="mini" onclick="delService(${idx})">Borrar</button></div>
+    </div>`;
+  }).join("") : `<p class="small">No hay servicios ese dÃ­a.</p>`;
+}
+render();
+</script>
+</body>
+</html>
