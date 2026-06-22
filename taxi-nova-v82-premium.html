@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Taxi Nova V8.2 Premium</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#070604;
+  --card:#14110b;
+  --card2:#1d170c;
+  --gold:#f7c948;
+  --gold2:#b8860b;
+  --gold3:#fff0aa;
+  --muted:#a8a29a;
+  --text:#fffaf0;
+  --line:#3a2d13;
+  --green:#22c55e;
+  --red:#7f1d1d;
+}
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  background:radial-gradient(circle at top,#3a2a05 0,#070604 42%);
+  color:var(--text);
+}
+header{
+  padding:18px 16px 12px;
+  max-width:560px;
+  margin:auto;
+}
+.top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+.brand{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.icon{
+  width:54px;
+  height:54px;
+  border-radius:19px;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(135deg,var(--gold),var(--gold3),var(--gold2));
+  color:#161006;
+  font-size:28px;
+  box-shadow:0 0 28px rgba(247,201,72,.34);
+}
+h1{font-size:24px;margin:0}
+.sub{margin:4px 0 0;color:var(--gold3);font-size:13px}
+.datebox{
+  text-align:right;
+  color:var(--muted);
+  font-size:12px;
+  font-weight:800;
+}
+main{max-width:560px;margin:auto;padding:0 14px 96px}
+.page{animation:fade .15s ease}
+.hidden{display:none}
+@keyframes fade{from{opacity:.45;transform:translateY(4px)}to{opacity:1;transform:none}}
+.hero{
+  background:linear-gradient(145deg,#221a08,#0e0c08);
+  border:1px solid var(--line);
+  border-radius:30px;
+  padding:18px;
+  margin:5px 0 14px;
+  box-shadow:0 20px 45px rgba(0,0,0,.35);
+}
+.label{
+  color:var(--muted);
+  font-size:12px;
+  font-weight:900;
+  letter-spacing:.09em;
+  text-transform:uppercase;
+}
+.bigTotal{
+  color:var(--gold);
+  font-size:44px;
+  font-weight:1000;
+  margin:4px 0 12px;
+  line-height:1;
+}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{
+  background:#0f0d09;
+  border:1px solid var(--line);
+  color:var(--gold3);
+  border-radius:999px;
+  padding:7px 10px;
+  font-size:12px;
+  font-weight:900;
+}
+.card{
+  background:rgba(20,17,11,.95);
+  border:1px solid var(--line);
+  border-radius:24px;
+  padding:16px;
+  margin-bottom:14px;
+}
+h2,h3{margin:0 0 12px}
+input,select{
+  width:100%;
+  background:#090806;
+  color:white;
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:15px;
+  margin:7px 0 11px;
+  font-size:16px;
+  outline:none;
+}
+input:focus,select:focus{border-color:var(--gold)}
+label{color:var(--muted);font-size:13px;font-weight:900}
+.btn{
+  width:100%;
+  border:0;
+  border-radius:20px;
+  padding:17px;
+  margin:7px 0;
+  font-size:17px;
+  font-weight:1000;
+  color:#171100;
+  background:linear-gradient(135deg,var(--gold),var(--gold3),var(--gold2));
+  box-shadow:0 12px 28px rgba(247,201,72,.2);
+}
+.btn.dark{
+  background:#0f0d09;
+  color:white;
+  border:1px solid var(--line);
+  box-shadow:none;
+}
+.btn.red{
+  background:#7f1d1d;
+  color:white;
+  box-shadow:none;
+}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.quick,.pill{
+  background:linear-gradient(145deg,#19140b,#0b0a07);
+  border:1px solid var(--line);
+  color:var(--gold3);
+  border-radius:18px;
+  padding:13px 7px;
+  font-weight:950;
+}
+.stat{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:11px 0;
+  border-bottom:1px solid var(--line);
+  gap:12px;
+}
+.stat:last-child{border-bottom:0}
+.stat b{color:var(--gold);white-space:nowrap}
+.small{color:var(--muted);font-size:13px}
+.service{
+  background:#090806;
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:13px;
+  margin:9px 0;
+}
+.service-title{font-weight:1000;font-size:16px}
+.badge{
+  display:inline-block;
+  margin-top:7px;
+  padding:5px 9px;
+  border-radius:999px;
+  background:#2a210d;
+  color:var(--gold);
+  border:1px solid var(--line);
+  font-size:12px;
+  font-weight:900;
+}
+.rowActions{display:flex;gap:8px;margin-top:9px}
+.mini{
+  border:0;
+  border-radius:12px;
+  padding:9px 12px;
+  color:white;
+  font-weight:900;
+  background:#1f2937;
+}
+.delete{background:var(--red)}
+.notice{
+  background:#241c0a;
+  border:1px solid var(--line);
+  border-radius:17px;
+  padding:12px;
+  color:#fff4bf;
+  margin-top:10px;
+}
+.tabs{
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  background:#070604;
+  border-top:1px solid var(--line);
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  padding-bottom:env(safe-area-inset-bottom);
+  z-index:20;
+}
+.tabs button{
+  border:0;
+  background:transparent;
+  color:#8b8376;
+  padding:10px 3px 12px;
+  font-size:11px;
+  font-weight:950;
+}
+.tabs button.active{color:var(--gold)}
+.segment{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+  margin-bottom:12px;
+}
+.segment button{
+  border:1px solid var(--line);
+  background:#0f0d09;
+  color:#d6c990;
+  padding:10px 6px;
+  border-radius:14px;
+  font-weight:950;
+}
+.segment button.active{
+  background:linear-gradient(135deg,var(--gold),var(--gold2));
+  color:#161006;
+}
+.copyarea{
+  width:100%;
+  min-height:145px;
+  background:#090806;
+  color:#fff4bf;
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:12px;
+  white-space:pre-wrap;
+  font-size:14px;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="top">
+    <div class="brand">
+      <div class="icon">🚕</div>
+      <div>
+        <h1>Taxi Nova V8.2</h1>
+        <p class="sub" id="driverSub">Premium taxi app</p>
+      </div>
+    </div>
+    <div class="datebox" id="todayBox"></div>
+  </div>
+</header>
+
+<main>
+<section id="inicio" class="page">
+  <div class="hero">
+    <div class="label">Total de hoy</div>
+    <div class="bigTotal" id="heroTotal">0,00 €</div>
+    <div class="chips">
+      <span class="chip" id="heroCount">0 servicios</span>
+      <span class="chip" id="heroWorker">40%: 0,00 €</span>
+      <span class="chip" id="heroOwner">60%: 0,00 €</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Nuevo servicio</h2>
+    <button class="btn" onclick="demoVoice()">🎙️ Probar voz</button>
+    <label>Servicio rápido</label>
+    <input id="texto" placeholder="Mercadal a Alaior 15,75 visa">
+    <button class="btn" onclick="addService()">➕ Añadir servicio</button>
+    <div id="resultado"></div>
+  </div>
+
+  <div class="card">
+    <h3>Atajos rápidos</h3>
+    <div class="grid2">
+      <button class="quick" onclick="fill('Mercadal a Alaior 15,75 visa')">Mercadal → Alaior</button>
+      <button class="quick" onclick="fill('Fornells a Son Parc 22 efectivo')">Fornells → Son Parc</button>
+      <button class="quick" onclick="fill('Aeropuerto a Arenal 38,50 bizum')">Aeropuerto → Arenal</button>
+      <button class="quick" onclick="fill('Mahón a Mercadal 31 bonoweb')">Mahón → Mercadal</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Último servicio</h3>
+    <div id="lastService"><p class="small">Todavía no hay servicios.</p></div>
+  </div>
+</section><section id="resumen" class="page hidden">
+  <div class="segment">
+    <button class="active" onclick="setRange('hoy',this)">Hoy</button>
+    <button onclick="setRange('semana',this)">Semana</button>
+    <button onclick="setRange('mes',this)">Mes</button>
+  </div>
+
+  <div class="card">
+    <h2 id="rangeTitle">Resumen de hoy</h2>
+    <div class="stat"><span>Total</span><b id="total">0,00 €</b></div>
+    <div class="stat"><span>Efectivo</span><b id="efectivo">0,00 €</b></div>
+    <div class="stat"><span>Visa</span><b id="visa">0,00 €</b></div>
+    <div class="stat"><span>Bizum</span><b id="bizum">0,00 €</b></div>
+    <div class="stat"><span>Bonoweb</span><b id="bonoweb">0,00 €</b></div>
+    <div class="stat"><span>Bono Vueling</span><b id="vueling">0,00 €</b></div>
+  </div>
+
+  <div class="card">
+    <h2>Reparto</h2>
+    <div class="stat"><span id="workerLabel">Trabajador 40%</span><b id="trabajador">0,00 €</b></div>
+    <div class="stat"><span id="ownerLabel">Propietario 60%</span><b id="propietario">0,00 €</b></div>
+    <div class="stat"><span>Gastos</span><b id="gastosTotal">0,00 €</b></div>
+    <div class="stat"><span>Propietario final</span><b id="propietarioFinal">0,00 €</b></div>
+  </div>
+
+  <div class="card">
+    <h2>Enviar resumen</h2>
+    <div class="copyarea" id="copyText"></div>
+    <button class="btn" onclick="copySummary()">📋 Copiar resumen</button>
+  </div>
+</section>
+
+<section id="historial" class="page hidden">
+  <div class="card">
+    <h2>Historial de servicios</h2>
+    <div id="historialLista"><p class="small">No hay servicios todavía.</p></div>
+  </div>
+</section>
+
+<section id="gastos" class="page hidden">
+  <div class="card">
+    <h2>Añadir gasto</h2>
+    <div class="grid3">
+      <button class="pill" onclick="setGasto('Gasolina')">Gasolina</button>
+      <button class="pill" onclick="setGasto('Limpieza')">Limpieza</button>
+      <button class="pill" onclick="setGasto('Mecánico')">Mecánico</button>
+    </div>
+    <br>
+    <label>Concepto</label>
+    <input id="gastoNombre" placeholder="Gasolina, limpieza, mecánico...">
+    <label>Importe</label>
+    <input id="gastoImporte" type="number" step="0.01" placeholder="25">
+    <button class="btn" onclick="addGasto()">➕ Añadir gasto</button>
+    <div id="gastosLista"></div>
+  </div>
+</section>
+
+<section id="ajustes" class="page hidden">
+  <div class="card">
+    <h2>Ajustes</h2>
+
+    <label>Nombre del conductor</label>
+    <input id="driverName" placeholder="Ej: Efra">
+
+    <div class="grid2">
+      <div>
+        <label>% trabajador</label>
+        <input id="workerPct" type="number" value="40">
+      </div>
+      <div>
+        <label>% propietario</label>
+        <input id="ownerPct" type="number" value="60">
+      </div>
+    </div>
+
+    <button class="btn" onclick="saveSettings()">Guardar ajustes</button>
+    <button class="btn red" onclick="resetAll()">Borrar todos los datos</button>
+
+    <div class="notice">
+      Esta versión guarda datos en este navegador con localStorage.
+      En GitHub Pages funcionaría como app instalable en iPhone.
+    </div>
+  </div>
+</section>
+</main>
+
+<nav class="tabs">
+  <button class="active" onclick="show('inicio',this)">Inicio</button>
+  <button onclick="show('resumen',this)">Resumen</button>
+  <button onclick="show('historial',this)">Historial</button>
+  <button onclick="show('gastos',this)">Gastos</button>
+  <button onclick="show('ajustes',this)">Ajustes</button>
+</nav><script>
+let servicios = JSON.parse(localStorage.getItem('tn_servicios_v82') || '[]');
+let gastos = JSON.parse(localStorage.getItem('tn_gastos_v82') || '[]');
+let settings = JSON.parse(localStorage.getItem('tn_settings_v82') || '{"driver":"","worker":40,"owner":60}');
+let currentRange='hoy';
+
+const todayKey = () => new Date().toISOString().slice(0,10);
+const monthKey = () => new Date().toISOString().slice(0,7);
+
+function weekStart(d=new Date()){
+  let x=new Date(d);
+  let day=(x.getDay()+6)%7;
+  x.setDate(x.getDate()-day);
+  x.setHours(0,0,0,0);
+  return x;
+}
+
+function euro(n){
+  return (n||0).toFixed(2).replace('.',',')+' €';
+}
+
+function save(){
+  localStorage.setItem('tn_servicios_v82',JSON.stringify(servicios));
+  localStorage.setItem('tn_gastos_v82',JSON.stringify(gastos));
+  localStorage.setItem('tn_settings_v82',JSON.stringify(settings));
+}
+
+function getRangeItems(arr){
+  const now=new Date();
+  const t=todayKey();
+  const m=monthKey();
+  const ws=weekStart(now);
+
+  return arr.filter(x=>{
+    if(currentRange==='hoy') return x.date===t;
+    if(currentRange==='mes') return (x.date||'').slice(0,7)===m;
+    if(currentRange==='semana'){
+      const xd=new Date(x.date+'T12:00:00');
+      return xd>=ws && xd<=now;
+    }
+  });
+}
+
+function show(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+
+  document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+
+  render();
+}
+
+function setRange(r,btn){
+  currentRange=r;
+
+  document.querySelectorAll('.segment button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+
+  render();
+}
+
+function fill(t){
+  document.getElementById('texto').value=t;
+}
+
+function demoVoice(){
+  document.getElementById('texto').value='Mercadal a Alaior 15,75 visa';
+  addService();
+}
+
+function addService(){
+  const text=document.getElementById('texto').value.trim();
+
+  if(!text){
+    alert('Escribe un servicio');
+    return;
+  }
+
+  const parsed=parseService(text);
+  servicios.unshift(parsed);
+
+  document.getElementById('texto').value='';
+  document.getElementById('resultado').innerHTML=`
+    <div class="notice">
+      <b>Servicio añadido ✅</b><br>
+      ${parsed.origen} → ${parsed.destino}<br>
+      ${euro(parsed.importe)} · ${parsed.pago.toUpperCase()} · ${parsed.hora}
+    </div>`;
+
+  save();
+  render();
+}
+
+function parseService(text){
+  const lower=text.toLowerCase();
+  const amountMatch=lower.match(/(\d+[,.]?\d*)/);
+  const importe=amountMatch ? parseFloat(amountMatch[1].replace(',','.')) : 0;
+
+  let pago='efectivo';
+
+  if(lower.includes('visa') || lower.includes('tarjeta')) pago='visa';
+  if(lower.includes('bizum')) pago='bizum';
+  if(lower.includes('bonoweb')) pago='bonoweb';
+  if(lower.includes('vueling') || lower.includes('vuelo')) pago='vueling';
+
+  let clean=text
+    .replace(/(\d+[,.]?\d*)/,'')
+    .replace(/con|en|por|desde|de|visa|tarjeta|bizum|bonoweb|vueling|vuelo|efectivo|euros|euro/ig,' ')
+    .replace(/\s+/g,' ')
+    .trim();
+
+  let parts=clean
+    .split(/\s+a\s+|\s+hasta\s+|\s+al\s+/i)
+    .map(x=>x.trim())
+    .filter(Boolean);
+
+  if(parts.length<2){
+    const words=clean.split(' ').filter(Boolean);
+    parts=[words[0]||'Origen', words.slice(1).join(' ')||'Destino'];
+  }
+
+  return {
+    origen: capitalize(parts[0]||'Origen'),
+    destino: capitalize(parts[1]||'Destino'),
+    importe,
+    pago,
+    hora:new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}),
+    date:todayKey()
+  };
+}
+
+function capitalize(s){
+  return s
+    .split(' ')
+    .map(w=>w ? w[0].toUpperCase()+w.slice(1).toLowerCase() : w)
+    .join(' ');
+}
+
+function setGasto(n){
+  document.getElementById('gastoNombre').value=n;
+}
+
+function addGasto(){
+  let nombre=document.getElementById('gastoNombre').value.trim() || 'Gasto';
+  let importe=parseFloat(document.getElementById('gastoImporte').value || 0);
+
+  if(!importe){
+    alert('Pon un importe');
+    return;
+  }
+
+  gastos.unshift({
+    nombre,
+    importe,
+    date:todayKey(),
+    hora:new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})
+  });
+
+  document.getElementById('gastoNombre').value='';
+  document.getElementById('gastoImporte').value='';
+
+  save();
+  render();
+}
+
+function delServicio(i){
+  if(confirm('¿Borrar este servicio?')){
+    servicios.splice(i,1);
+    save();
+    render();
+  }
+}
+
+function delGasto(i){
+  if(confirm('¿Borrar este gasto?')){
+    gastos.splice(i,1);
+    save();
+    render();
+  }
+}
+
+function saveSettings(){
+  settings.driver=document.getElementById('driverName').value.trim();
+  settings.worker=parseFloat(document.getElementById('workerPct').value||40);
+  settings.owner=parseFloat(document.getElementById('ownerPct').value||60);
+
+  save();
+  render();
+
+  alert('Ajustes guardados');
+}
+
+function resetAll(){
+  if(confirm('¿Seguro que quieres borrar todos los datos?')){
+    servicios=[];
+    gastos=[];
+
+    save();
+    render();
+  }
+}
+
+function copySummary(){
+  const txt=document.getElementById('copyText').textContent;
+
+  navigator.clipboard?.writeText(txt)
+    .then(()=>alert('Resumen copiado'))
+    .catch(()=>alert('No se pudo copiar automáticamente'));
+}
+
+function totals(){
+  const ss=getRangeItems(servicios);
+  const gs=getRangeItems(gastos);
+
+  let sums={
+    efectivo:0,
+    visa:0,
+    bizum:0,
+    bonoweb:0,
+    vueling:0
+  };
+
+  ss.forEach(s=>{
+    sums[s.pago]+=s.importe;
+  });
+
+  let total=Object.values(sums).reduce((a,b)=>a+b,0);
+  let gastoTotal=gs.reduce((a,b)=>a+b.importe,0);
+
+  return {
+    ss,
+    gs,
+    sums,
+    total,
+    gastoTotal
+  };
+}
+
+function render(){
+  document.getElementById('todayBox').innerHTML=
+    new Date().toLocaleDateString('es-ES',{
+      weekday:'short',
+      day:'2-digit',
+      month:'short'
+    });
+
+  document.getElementById('driverSub').textContent=
+    settings.driver
+      ? settings.driver+' · Premium taxi app'
+      : 'Premium taxi app';
+
+  document.getElementById('driverName').value=settings.driver||'';
+  document.getElementById('workerPct').value=settings.worker;
+  document.getElementById('ownerPct').value=settings.owner;
+
+  const old=currentRange;
+  currentRange='hoy';
+  let day=totals();
+  currentRange=old;
+
+  document.getElementById('heroTotal').textContent=euro(day.total);
+  document.getElementById('heroCount').textContent=
+    day.ss.length + (day.ss.length===1?' servicio':' servicios');
+
+  document.getElementById('heroWorker').textContent=
+    settings.worker+'%: '+euro(day.total*(settings.worker/100));
+
+  document.getElementById('heroOwner').textContent=
+    settings.owner+'%: '+euro(day.total*(settings.owner/100));
+
+  const t=totals();
+
+  document.getElementById('rangeTitle').textContent=
+    currentRange==='hoy'
+      ? 'Resumen de hoy'
+      : currentRange==='semana'
+        ? 'Resumen semanal'
+        : 'Resumen mensual';
+
+  document.getElementById('total').textContent=euro(t.total);
+  document.getElementById('efectivo').textContent=euro(t.sums.efectivo);
+  document.getElementById('visa').textContent=euro(t.sums.visa);
+  document.getElementById('bizum').textContent=euro(t.sums.bizum);
+  document.getElementById('bonoweb').textContent=euro(t.sums.bonoweb);
+  document.getElementById('vueling').textContent=euro(t.sums.vueling);
+
+  document.getElementById('workerLabel').textContent='Trabajador '+settings.worker+'%';
+  document.getElementById('ownerLabel').textContent='Propietario '+settings.owner+'%';
+
+  document.getElementById('trabajador').textContent=euro(t.total*(settings.worker/100));
+  document.getElementById('propietario').textContent=euro(t.total*(settings.owner/100));
+  document.getElementById('gastosTotal').textContent=euro(t.gastoTotal);
+  document.getElementById('propietarioFinal').textContent=euro(t.total*(settings.owner/100)-t.gastoTotal);
+
+  const last=day.ss[0];
+
+  document.getElementById('lastService').innerHTML=
+    last
+      ? serviceCard(last,-1,false)
+      : '<p class="small">Todavía no hay servicios.</p>';
+
+  document.getElementById('historialLista').innerHTML=
+    servicios.length
+      ? servicios.map((s,i)=>serviceCard(s,i,true)).join('')
+      : '<p class="small">No hay servicios todavía.</p>';
+
+  document.getElementById('gastosLista').innerHTML=
+    gastos.length
+      ? gastos.map((g,i)=>`
+        <div class="service">
+          <div class="service-title">${g.hora||''} · ${g.nombre}</div>
+          <div class="small">${g.date||''}</div>
+          <span class="badge">${euro(g.importe)}</span>
+          <div class="rowActions">
+            <button class="mini delete" onclick="delGasto(${i})">Borrar</button>
+          </div>
+        </div>
+      `).join('')
+      : '<p class="small">No hay gastos todavía.</p>';
+
+  document.getElementById('copyText').textContent =
+`🚕 Taxi Nova V8.2
+${currentRange==='hoy'?'Resumen de hoy':currentRange==='semana'?'Resumen semanal':'Resumen mensual'}
+
+Total: ${euro(t.total)}
+Efectivo: ${euro(t.sums.efectivo)}
+Visa: ${euro(t.sums.visa)}
+Bizum: ${euro(t.sums.bizum)}
+Bonoweb: ${euro(t.sums.bonoweb)}
+Bono Vueling: ${euro(t.sums.vueling)}
+
+Trabajador ${settings.worker}%: ${euro(t.total*(settings.worker/100))}
+Propietario ${settings.owner}%: ${euro(t.total*(settings.owner/100))}
+Gastos: ${euro(t.gastoTotal)}
+Propietario final: ${euro(t.total*(settings.owner/100)-t.gastoTotal)}
+
+Servicios: ${t.ss.length}`;
+}
+
+function serviceCard(s,i,actions){
+  return `
+    <div class="service">
+      <div class="service-title">${s.hora} · ${s.origen} → ${s.destino}</div>
+      <div class="small">${s.date||''}</div>
+      <span class="badge">${euro(s.importe)} · ${s.pago.toUpperCase()}</span>
+      ${actions
+        ? `<div class="rowActions">
+             <button class="mini delete" onclick="delServicio(${i})">Borrar</button>
+           </div>`
+        : ''}
+    </div>
+  `;
+}
+
+render();
+</script>
+</body>
+</html>
