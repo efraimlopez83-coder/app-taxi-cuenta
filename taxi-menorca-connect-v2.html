@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Taxi Menorca Connect V2</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#020617;color:white}
+header{padding:20px;text-align:center;background:linear-gradient(135deg,#facc15,#f97316);color:#111}
+header h1{margin:0;font-size:25px}
+header p{margin:5px 0 0;font-weight:600}
+.tabs{display:flex;background:#0f172a;position:sticky;top:0;z-index:10}
+.tabs button{flex:1;padding:15px;border:0;background:#0f172a;color:#94a3b8;font-weight:800;font-size:15px}
+.tabs button.active{background:#facc15;color:#111}
+.page{display:none;padding:16px}
+.page.active{display:block}
+.card{background:#111827;border:1px solid #1f2937;border-radius:20px;padding:16px;margin-bottom:15px;box-shadow:0 8px 20px #0006}
+input,textarea,select{width:100%;padding:14px;margin:7px 0;border-radius:14px;border:1px solid #334155;background:#020617;color:white;font-size:16px}
+button{cursor:pointer}
+.main{width:100%;padding:15px;border:0;border-radius:16px;font-weight:900;font-size:16px;margin-top:8px}
+.green{background:#22c55e;color:white}
+.blue{background:#3b82f6;color:white}
+.red{background:#ef4444;color:white}
+.yellow{background:#facc15;color:#111}
+.gray{background:#334155;color:white}
+.badge{display:inline-block;padding:6px 11px;border-radius:999px;background:#facc15;color:#111;font-size:13px;font-weight:900}
+.badge.ok{background:#22c55e;color:white}
+.badge.no{background:#ef4444;color:white}
+.small{color:#cbd5e1;font-size:14px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.price{font-size:30px;font-weight:900;color:#facc15}
+a{color:#facc15;text-decoration:none;font-weight:800}
+.empty{text-align:center;color:#94a3b8;padding:20px}
+</style>
+</head>
+<body>
+
+<header>
+<h1>🚕 Taxi Menorca Connect V2</h1>
+<p>Pasajeros conectados con taxis</p>
+</header>
+
+<div class="tabs">
+<button class="active" onclick="showPage('pasajero',this)">👤 Pasajero</button>
+<button onclick="showPage('taxista',this)">🚕 Taxista</button>
+<button onclick="showPage('panel',this)">📊 Panel</button>
+</div>
+
+<section id="pasajero" class="page active">
+<div class="card">
+<h2>Pedir taxi</h2>
+<input id="nombre" placeholder="Nombre del cliente">
+<input id="telefono" placeholder="Teléfono">
+<input id="origen" placeholder="Origen: Hotel, calle, aeropuerto...">
+<input id="destino" placeholder="Destino">
+<select id="personas">
+<option value="1">1 persona</option>
+<option value="2">2 personas</option>
+<option value="3">3 personas</option>
+<option value="4">4 personas</option>
+<option value="5+">5 o más personas</option>
+</select>
+<textarea id="nota" placeholder="Nota opcional: maletas, silla bebé, perro..."></textarea>
+<button class="main blue" onclick="usarUbicacion()">📍 Usar mi ubicación</button>
+<button class="main green" onclick="pedirTaxi()">🚕 Pedir taxi ahora</button>
+</div>
+
+<div class="card">
+<h3>Estado de solicitud</h3>
+<div id="estadoPasajero" class="small">Aún no has pedido taxi.</div>
+</div>
+</section>
+
+<section id="taxista" class="page">
+<div class="card">
+<h2>Solicitudes de taxi</h2>
+<div id="listaSolicitudes"></div>
+</div>
+</section>
+
+<section id="panel" class="page">
+<div class="card">
+<h2>Resumen</h2>
+<p>Total solicitudes:</p>
+<div class="price" id="totalSolicitudes">0</div>
+<p class="small">Pendientes, aceptadas y rechazadas.</p>
+</div>
+
+<div class="card">
+<button class="main red" onclick="borrarTodo()">🗑️ Borrar todas las solicitudes</button>
+</div>
+</section>
+
+<script>
+let solicitudes = JSON.parse(localStorage.getItem("taxiMenorcaConnectV2")) || [];
+let ultimaSolicitudCliente = localStorage.getItem("ultimaSolicitudCliente") || null;
+
+function sonido(){
+  try{
+    const audio = new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg");
+    audio.play();
+  }catch(e){}
+}
+
+function guardar(){
+  localStorage.setItem("taxiMenorcaConnectV2", JSON.stringify(solicitudes));
+  render();
+}
+
+function showPage(id,btn){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  btn.classList.add("active");
+  render();
+}
+
+function usarUbicacion(){
+  if(!navigator.geolocation){
+    alert("Tu móvil no permite ubicación.");
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(pos=>{
+    const lat = pos.coords.latitude.toFixed(5);
+    const lon = pos.coords.longitude.toFixed(5);
+    document.getElementById("origen").value = "Mi ubicación: " + lat + ", " + lon;
+  },()=>{
+    alert("No se pudo obtener la ubicación.");
+  });
+}
+
+function pedirTaxi(){
+  const nombre = document.getElementById("nombre").value.trim();
+  const telefono = document.getElementById("telefono").value.trim();
+  const origen = document.getElementById("origen").value.trim();
+  const destino = document.getElementById("destino").value.trim();
+  const personas = document.getElementById("personas").value;
+  const nota = document.getElementById("nota").value.trim();
+
+  if(!nombre || !telefono || !origen || !destino){
+    alert("Rellena nombre, teléfono, origen y destino.");
+    return;
+  }
+
+  const solicitud = {
+    id: Date.now(),
+    nombre,
+    telefono,
+    origen,
+    destino,
+    personas,
+    nota,
+    estado: "Pendiente",
+    taxista: "",
+    hora: new Date().toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"}),
+    fecha: new Date().toLocaleDateString("es-ES")
+  };
+
+  solicitudes.unshift(solicitud);
+  ultimaSolicitudCliente = solicitud.id;
+  localStorage.setItem("ultimaSolicitudCliente", ultimaSolicitudCliente);
+  guardar();
+  sonido();
+
+  document.getElementById("estadoPasajero").innerHTML =
+  `✅ Solicitud enviada<br><br>
+  <span class="badge">Pendiente</span><br>
+  <b>${origen}</b> → <b>${destino}</b><br>
+  Esperando taxista...`;
+
+  alert("Taxi solicitado correctamente.");
+}
+
+function aceptar(id){
+  const nombreTaxista = prompt("Nombre del taxista:", "Taxi Menorca");
+  solicitudes = solicitudes.map(s=>{
+    if(s.id===id){
+      s.estado="Aceptado";
+      s.taxista=nombreTaxista || "Taxi Menorca";
+    }
+    return s;
+  });
+  guardar();
+  sonido();
+}
+
+function rechazar(id){
+  solicitudes = solicitudes.map(s=>{
+    if(s.id===id){
+      s.estado="Rechazado";
+    }
+    return s;
+  });
+  guardar();
+}
+
+function borrar(id){
+  solicitudes = solicitudes.filter(s=>s.id!==id);
+  guardar();
+}
+
+function borrarTodo(){
+  if(confirm("¿Borrar todas las solicitudes?")){
+    solicitudes=[];
+    localStorage.removeItem("taxiMenorcaConnectV2");
+    localStorage.removeItem("ultimaSolicitudCliente");
+    ultimaSolicitudCliente=null;
+    render();
+  }
+}
+
+function render(){
+  const lista = document.getElementById("listaSolicitudes");
+  const total = document.getElementById("totalSolicitudes");
+  total.textContent = solicitudes.length;
+
+  if(!solicitudes.length){
+    lista.innerHTML = "<div class='empty'>No hay solicitudes todavía.</div>";
+    return;
+  }
+
+  lista.innerHTML = solicitudes.map(s=>{
+    let badge = "badge";
+    if(s.estado==="Aceptado") badge="badge ok";
+    if(s.estado==="Rechazado") badge="badge no";
+
+    return `
+    <div class="card">
+      <h3>${s.origen} → ${s.destino}</h3>
+      <p><span class="${badge}">${s.estado}</span></p>
+      <p><b>Cliente:</b> ${s.nombre}</p>
+      <p><b>Teléfono:</b> <a href="tel:${s.telefono}">${s.telefono}</a></p>
+      <p><b>Personas:</b> ${s.personas}</p>
+      <p><b>Hora:</b> ${s.hora} - ${s.fecha}</p>
+      <p><b>Nota:</b> ${s.nota || "Sin nota"}</p>
+      ${s.taxista ? `<p><b>Taxista:</b> ${s.taxista}</p>` : ""}
+      <div class="row">
+        <button class="main green" onclick="aceptar(${s.id})">Aceptar</button>
+        <button class="main red" onclick="rechazar(${s.id})">Rechazar</button>
+      </div>
+      <button class="main yellow" onclick="location.href='tel:${s.telefono}'">📞 Llamar cliente</button>
+      <button class="main gray" onclick="borrar(${s.id})">Borrar solicitud</button>
+    </div>`;
+  }).join("");
+
+  if(ultimaSolicitudCliente){
+    const s = solicitudes.find(x=>x.id == ultimaSolicitudCliente);
+    if(s){
+      let texto = `
+      <span class="${s.estado==='Aceptado'?'badge ok':s.estado==='Rechazado'?'badge no':'badge'}">${s.estado}</span><br><br>
+      <b>${s.origen}</b> → <b>${s.destino}</b><br>`;
+      if(s.taxista) texto += `<br>🚕 Taxista: <b>${s.taxista}</b>`;
+      document.getElementById("estadoPasajero").innerHTML = texto;
+    }
+  }
+}
+
+render();
+</script>
+
+</body>
+</html>
