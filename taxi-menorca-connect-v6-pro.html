@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Taxi Menorca Connect V6 Pro</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#020617;color:white}
+header{padding:22px;text-align:center;background:linear-gradient(135deg,#facc15,#f97316);color:#111}
+header h1{margin:0;font-size:24px}
+header p{margin:6px 0 0;font-weight:800}
+.tabs{display:flex;overflow-x:auto;background:#0f172a;position:sticky;top:0;z-index:99}
+.tabs button{min-width:120px;flex:1;padding:14px;border:0;background:#0f172a;color:#94a3b8;font-weight:900}
+.tabs button.active{background:#facc15;color:#111}
+.page{display:none;padding:16px}.page.active{display:block}
+.card{background:#111827;border:1px solid #1f2937;border-radius:22px;padding:16px;margin-bottom:15px;box-shadow:0 8px 24px #0008}
+input,textarea,select{width:100%;padding:14px;margin:7px 0;border-radius:15px;border:1px solid #334155;background:#020617;color:white;font-size:16px}
+button{cursor:pointer}
+.main{width:100%;padding:15px;border:0;border-radius:16px;font-weight:900;font-size:16px;margin-top:8px}
+.green{background:#22c55e;color:white}.blue{background:#3b82f6;color:white}.red{background:#ef4444;color:white}
+.yellow{background:#facc15;color:#111}.gray{background:#334155;color:white}.purple{background:#8b5cf6;color:white}.cyan{background:#06b6d4;color:white}
+.badge{display:inline-block;padding:7px 12px;border-radius:999px;font-size:13px;font-weight:900}
+.Pendiente{background:#facc15;color:#111}.Asignado{background:#3b82f6;color:white}.EnCamino{background:#06b6d4;color:white}
+.Recogido{background:#8b5cf6;color:white}.Finalizado{background:#22c55e;color:white}.Rechazado{background:#ef4444;color:white}.Reserva{background:#14b8a6;color:white}
+.small{color:#cbd5e1;font-size:14px}.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}.stat{background:#020617;border:1px solid #334155;border-radius:18px;padding:15px;text-align:center}
+.stat b{font-size:28px;color:#facc15}.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px}.chip{white-space:nowrap;border:1px solid #334155;background:#020617;color:white;border-radius:999px;padding:9px 12px;font-weight:800}
+.price{font-size:30px;font-weight:900;color:#facc15}a{color:#facc15;text-decoration:none;font-weight:900}.empty{text-align:center;color:#94a3b8;padding:20px}
+</style>
+</head>
+<body>
+
+<header>
+<h1>🚕 Taxi Menorca Connect V6 Pro</h1>
+<p>Cliente · IA · Taxista · Central</p>
+</header>
+
+<div class="tabs">
+<button class="active" onclick="showPage('cliente',this)">👤 Cliente</button>
+<button onclick="showPage('ia',this)">🤖 IA</button>
+<button onclick="showPage('taxista',this)">🚕 Taxista</button>
+<button onclick="showPage('panel',this)">📊 Central</button>
+</div>
+
+<section id="cliente" class="page active">
+<div class="card">
+<h2>Pedir taxi</h2>
+
+<div class="chips">
+<button class="chip" onclick="setOrigen('Aeropuerto de Menorca')">Aeropuerto</button>
+<button class="chip" onclick="setOrigen('Mahón')">Mahón</button>
+<button class="chip" onclick="setOrigen('Alaior')">Alaior</button>
+<button class="chip" onclick="setOrigen('Mercadal')">Mercadal</button>
+<button class="chip" onclick="setOrigen('Fornells')">Fornells</button>
+<button class="chip" onclick="setOrigen('Son Parc')">Son Parc</button>
+</div>
+
+<input id="nombre" placeholder="Nombre">
+<input id="telefono" placeholder="Teléfono">
+<input id="origen" placeholder="Origen">
+<input id="destino" placeholder="Destino">
+<select id="personas">
+<option>1 persona</option><option>2 personas</option><option>3 personas</option><option>4 personas</option><option>5 o más</option>
+</select>
+<select id="tipo">
+<option>Ahora</option><option>Reserva</option>
+</select>
+<input id="fechaReserva" type="date">
+<input id="horaReserva" type="time">
+<textarea id="nota" placeholder="Nota: maletas, silla bebé, mascota..."></textarea>
+
+<button class="main blue" onclick="ubicacion()">📍 Usar ubicación</button>
+<button class="main yellow" onclick="calcularPrecio()">💶 Calcular precio estimado</button>
+<div id="precioBox" class="small"></div>
+<button class="main green" onclick="crearServicio('Cliente')">🚕 Pedir taxi</button>
+</div>
+
+<div class="card">
+<h3>Estado</h3>
+<div id="estadoCliente" class="small">Aún no has pedido taxi.</div>
+</div>
+</section>
+
+<section id="ia" class="page">
+<div class="card">
+<h2>🤖 Central IA simulada</h2>
+<textarea id="textoIA" placeholder="Ejemplo: Necesito taxi desde Alaior hasta Aeropuerto mañana a las 18:30 para 2 personas con maletas. Me llamo Juan y mi teléfono es 600123123"></textarea>
+<button class="main yellow" onclick="iaCrear()">Crear servicio con IA</button>
+</div>
+</section>
+
+<section id="taxista" class="page">
+<div class="card">
+<h2>Modo taxista</h2>
+<input id="taxistaNombre" placeholder="Nombre del taxista" oninput="localStorage.setItem('TMCV6_TAXISTA',this.value)">
+</div>
+<div id="listaTaxista"></div>
+</section>
+
+<section id="panel" class="page">
+<div class="card">
+<h2>Panel central</h2>
+<div class="stats">
+<div class="stat"><b id="pPend">0</b><br>Pendientes</div>
+<div class="stat"><b id="pAsig">0</b><br>Asignados</div>
+<div class="stat"><b id="pCamino">0</b><br>En camino</div>
+<div class="stat"><b id="pFin">0</b><br>Finalizados</div>
+</div>
+</div>
+
+<div class="card">
+<input id="buscador" placeholder="Buscar cliente, origen, destino..." oninput="render()">
+<button class="main cyan" onclick="exportCSV()">📤 Exportar CSV</button>
+</div>
+
+<div class="card">
+<h2>Historial</h2>
+<div id="historial"></div>
+</div>
+
+<div class="card">
+<button class="main red" onclick="borrarTodo()">🗑️ Borrar todo</button>
+</div>
+</section>
+
+<script>
+let servicios=JSON.parse(localStorage.getItem("TMCV6_SERVICIOS"))||[];
+let ultimo=localStorage.getItem("TMCV6_ULTIMO")||null;
+taxistaNombre.value=localStorage.getItem("TMCV6_TAXISTA")||"";
+
+function sonido(){try{new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg").play()}catch(e){}}
+function guardar(){localStorage.setItem("TMCV6_SERVICIOS",JSON.stringify(servicios));render()}
+function showPage(id,btn){document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("active"));document.getElementById(id).classList.add("active");btn.classList.add("active");render()}
+function setOrigen(z){origen.value=z}
+function ubicacion(){navigator.geolocation?.getCurrentPosition(p=>{origen.value="Mi ubicación: "+p.coords.latitude.toFixed(5)+", "+p.coords.longitude.toFixed(5)},()=>alert("No se pudo obtener ubicación"))}
+
+function estimar(origen,destino){
+ let texto=(origen+" "+destino).toLowerCase();
+ if(texto.includes("aeropuerto")&&texto.includes("alaior"))return 22;
+ if(texto.includes("aeropuerto")&&texto.includes("mahón"))return 18;
+ if(texto.includes("aeropuerto")&&texto.includes("ciutadella"))return 70;
+ if(texto.includes("fornells")&&texto.includes("mercadal"))return 18;
+ if(texto.includes("son parc")&&texto.includes("fornells"))return 24;
+ return 25;
+}
+
+function calcularPrecio(){
+ let p=estimar(origen.value,destino.value);
+ precioBox.innerHTML=`Precio estimado: <span class="price">${p}€</span><br>Orientativo, no definitivo.`;
+ return p;
+}
+
+function crearServicio(modo){
+ if(!nombre.value||!telefono.value||!origen.value||!destino.value){alert("Faltan datos");return}
+ let s={
+ id:Date.now(),creadoPor:modo,nombre:nombre.value,telefono:telefono.value,origen:origen.value,destino:destino.value,
+ personas:personas.value,tipo:tipo.value,fechaReserva:fechaReserva.value,horaReserva:horaReserva.value,nota:nota.value,
+ precio:calcularPrecio(),estado:"Pendiente",taxista:"",
+ fecha:new Date().toLocaleDateString("es-ES"),hora:new Date().toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit"})
+ };
+ servicios.unshift(s);ultimo=s.id;localStorage.setItem("TMCV6_ULTIMO",ultimo);guardar();sonido();alert("Servicio creado");
+}
+
+function iaCrear(){
+ let t=textoIA.value;if(!t){alert("Escribe la llamada simulada");return}
+ nombre.value=(t.match(/me llamo ([a-záéíóúñ ]+)/i)||[])[1]||"Cliente IA";
+ telefono.value=(t.match(/(6\d{8}|7\d{8})/)||[])[1]||"";
+ origen.value=(t.match(/desde (.*?) hasta/i)||[])[1]||"Origen por confirmar";
+ destino.value=(t.match(/hasta (.*?)( para| a las| con| mañana| hoy|$)/i)||[])[1]||"Destino por confirmar";
+ let per=(t.match(/(\d+) persona/i)||[])[1];personas.value=per?per+" persona":"1 persona";
+ horaReserva.value=(t.match(/(\d{1,2}:\d{2})/)||[])[1]||"";
+ tipo.value=horaReserva.value?"Reserva":"Ahora";
+ nota.value=t.toLowerCase().includes("maleta")?"Maletas":"";
+ crearServicio("Central IA");
+}
+
+function estado(id,e){
+ servicios=servicios.map(s=>{if(s.id===id){s.estado=e;if(e==="Asignado")s.taxista=taxistaNombre.value||"Taxi Menorca"}return s});
+ guardar();sonido();
+}
+
+function borrar(id){servicios=servicios.filter(s=>s.id!==id);guardar()}
+function borrarTodo(){if(confirm("¿Borrar todo?")){servicios=[];localStorage.removeItem("TMCV6_SERVICIOS");localStorage.removeItem("TMCV6_ULTIMO");ultimo=null;render()}}
+
+function maps(q){return "https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(q)}
+function wa(s){return `https://wa.me/34${s.telefono}?text=${encodeURIComponent("Hola "+s.nombre+", soy "+(s.taxista||"Taxi Menorca")+". Tu taxi está "+s.estado+". Servicio: "+s.origen+" → "+s.destino)}`}
+
+function tarjeta(s,modo){
+ return `<div class="card">
+ <h3>${s.origen} → ${s.destino}</h3>
+ <p><span class="badge ${s.estado}">${s.estado}</span> ${s.tipo==="Reserva"?'<span class="badge Reserva">Reserva</span>':''}</p>
+ <p><b>Cliente:</b> ${s.nombre}</p>
+ <p><b>Tel:</b> <a href="tel:${s.telefono}">${s.telefono}</a></p>
+ <p><b>Personas:</b> ${s.personas}</p>
+ <p><b>Precio estimado:</b> ${s.precio||"-"}€</p>
+ <p><b>Hora:</b> ${s.hora} · ${s.fecha}</p>
+ ${s.horaReserva?`<p><b>Reserva:</b> ${s.fechaReserva||"Sin fecha"} ${s.horaReserva}</p>`:""}
+ <p><b>Nota:</b> ${s.nota||"Sin nota"}</p>
+ ${s.taxista?`<p><b>Taxista:</b> ${s.taxista}</p>`:""}
+ ${modo==="taxista"?`
+ <button class="main green" onclick="estado(${s.id},'Asignado')">✅ Asignar a mí</button>
+ <button class="main cyan" onclick="estado(${s.id},'EnCamino')">🚕 En camino</button>
+ <button class="main purple" onclick="estado(${s.id},'Recogido')">👤 Recogido</button>
+ <button class="main blue" onclick="estado(${s.id},'Finalizado')">🏁 Finalizar</button>
+ <button class="main red" onclick="estado(${s.id},'Rechazado')">❌ Rechazar</button>
+ <button class="main yellow" onclick="location.href='tel:${s.telefono}'">📞 Llamar</button>
+ <button class="main green" onclick="location.href='${wa(s)}'">💬 WhatsApp</button>
+ <button class="main blue" onclick="location.href='${maps(s.origen)}'">🗺️ Ir al origen</button>`:""}
+ <button class="main gray" onclick="borrar(${s.id})">🗑️ Borrar</button>
+ </div>`
+}
+
+function render(){
+ let q=(buscador?.value||"").toLowerCase();
+ let filtrados=servicios.filter(s=>(s.nombre+s.origen+s.destino+s.telefono+s.estado).toLowerCase().includes(q));
+ listaTaxista.innerHTML=servicios.filter(s=>!["Finalizado","Rechazado"].includes(s.estado)).map(s=>tarjeta(s,"taxista")).join("")||"<div class='empty'>Sin servicios activos</div>";
+ historial.innerHTML=filtrados.map(s=>tarjeta(s,"panel")).join("")||"<div class='empty'>Historial vacío</div>";
+ pPend.textContent=servicios.filter(s=>s.estado==="Pendiente").length;
+ pAsig.textContent=servicios.filter(s=>s.estado==="Asignado").length;
+ pCamino.textContent=servicios.filter(s=>s.estado==="EnCamino").length;
+ pFin.textContent=servicios.filter(s=>s.estado==="Finalizado").length;
+ if(ultimo){
+  let s=servicios.find(x=>x.id==ultimo);
+  estadoCliente.innerHTML=s?`<span class="badge ${s.estado}">${s.estado}</span><br><br><b>${s.origen}</b> → <b>${s.destino}</b><br><br>${s.taxista?`🚕 Taxista: <b>${s.taxista}</b>`:"Esperando taxista..."}<br>💶 Estimado: ${s.precio}€`:"Solicitud borrada";
+ }
+}
+
+function exportCSV(){
+ let csv="fecha,hora,nombre,telefono,origen,destino,personas,tipo,reserva,precio,estado,taxista,nota\n";
+ servicios.forEach(s=>{
+  csv+=`"${s.fecha}","${s.hora}","${s.nombre}","${s.telefono}","${s.origen}","${s.destino}","${s.personas}","${s.tipo}","${s.fechaReserva||""} ${s.horaReserva||""}","${s.precio||""}","${s.estado}","${s.taxista||""}","${s.nota||""}"\n`;
+ });
+ let blob=new Blob([csv],{type:"text/csv;charset=utf-8"});
+ let a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="taxi-menorca-connect-servicios.csv";a.click();
+}
+
+render();
+</script>
+</body>
+</html>
