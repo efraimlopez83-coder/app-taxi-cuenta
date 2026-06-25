@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Taxi Menorca Connect V6</title>
+
+<meta name="theme-color" content="#facc15">
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+
+body{
+background:#020617;
+color:white;
+}
+
+header{
+padding:20px;
+text-align:center;
+background:linear-gradient(135deg,#facc15,#fb923c);
+color:#111827;
+}
+
+header h1{
+font-size:28px;
+font-weight:900;
+}
+
+header p{
+margin-top:5px;
+font-weight:700;
+}
+
+.tabs{
+display:flex;
+background:#0f172a;
+position:sticky;
+top:0;
+z-index:99;
+}
+
+.tabs button{
+flex:1;
+padding:14px;
+border:none;
+background:#0f172a;
+color:#94a3b8;
+font-weight:800;
+cursor:pointer;
+}
+
+.tabs button.active{
+background:#facc15;
+color:#111827;
+}
+
+.page{
+display:none;
+padding:15px;
+}
+
+.page.active{
+display:block;
+}
+
+.card{
+background:#111827;
+border-radius:18px;
+padding:15px;
+margin-bottom:15px;
+border:1px solid #1e293b;
+}
+
+.card h2{
+margin-bottom:10px;
+}
+
+label{
+display:block;
+margin-bottom:6px;
+font-weight:700;
+}
+
+input,
+select,
+textarea{
+width:100%;
+padding:12px;
+margin-bottom:12px;
+border-radius:12px;
+border:1px solid #334155;
+background:#020617;
+color:white;
+}
+
+button{
+border:none;
+border-radius:12px;
+padding:12px;
+font-weight:800;
+cursor:pointer;
+}
+
+.btn{
+width:100%;
+background:#facc15;
+color:#111827;
+}
+
+.btnBlue{
+background:#38bdf8;
+color:#082f49;
+width:100%;
+}
+
+.btnGreen{
+background:#22c55e;
+color:#052e16;
+width:100%;
+}
+
+.btnRed{
+background:#ef4444;
+color:white;
+width:100%;
+}
+
+.row{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:10px;
+}
+
+.statGrid{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:10px;
+}
+
+.stat{
+background:#020617;
+border-radius:14px;
+padding:10px;
+text-align:center;
+}
+
+.stat b{
+display:block;
+font-size:22px;
+color:#facc15;
+}
+
+.service{
+background:#020617;
+padding:12px;
+border-radius:15px;
+margin-bottom:10px;
+border:1px solid #334155;
+}
+
+.badge{
+display:inline-block;
+padding:5px 10px;
+border-radius:999px;
+font-size:12px;
+font-weight:700;
+margin-right:5px;
+margin-top:5px;
+background:#1e293b;
+}
+
+.pending{
+background:#7c2d12;
+color:#fed7aa;
+}
+
+.accepted{
+background:#164e63;
+color:#cffafe;
+}
+
+.pickup{
+background:#14532d;
+color:#bbf7d0;
+}
+
+.done{
+background:#365314;
+color:#ecfccb;
+}
+
+.totalBox{
+background:#172554;
+padding:15px;
+border-radius:16px;
+text-align:center;
+}
+
+.bigMoney{
+font-size:30px;
+font-weight:900;
+color:#facc15;
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>🚕 Taxi Menorca Connect V6</h1>
+<p>Cliente · Taxista · Central IA · Maps · Voz</p>
+</header>
+
+<nav class="tabs">
+<button class="active" onclick="showPage('cliente',this)">Cliente</button>
+<button onclick="showPage('taxista',this)">Taxista</button>
+<button onclick="showPage('central',this)">Central IA</button>
+<button onclick="showPage('panel',this)">Panel</button>
+<button onclick="showPage('historial',this)">Historial</button>
+</nav><section id="cliente" class="page active">
+
+<div class="card">
+<h2>📍 Solicitar taxi</h2>
+
+<label>Nombre del cliente</label>
+<input id="cNombre" placeholder="Ej: María">
+
+<div class="row">
+<div>
+<label>Origen</label>
+<input id="cOrigen" placeholder="Ej: Fornells">
+</div>
+
+<div>
+<label>Destino</label>
+<input id="cDestino" placeholder="Ej: Aeropuerto">
+</div>
+</div>
+
+<label>Método de pago</label>
+<select id="cPago">
+<option>Efectivo</option>
+<option>Visa</option>
+<option>Bizum</option>
+<option>Bonoweb</option>
+<option>Bono Vueling</option>
+</select>
+
+<label>Importe estimado</label>
+<input id="cImporte" type="number" step="0.01" placeholder="Ej: 18.50">
+
+<label>Nota / teléfono</label>
+<input id="cNota" placeholder="Opcional">
+
+<button class="btn" onclick="crearSolicitud()">🚕 Pedir taxi</button>
+<br><br>
+<button class="btnBlue" onclick="usarUbicacion()">📡 Usar mi ubicación</button>
+</div>
+
+<div class="card">
+<h2>🎙️ Solicitud por voz</h2>
+<p>Ejemplo: “Soy Ana, desde Fornells hasta Alaior, 22 euros con visa”.</p>
+<button class="btnBlue" onclick="vozCliente()">Hablar ahora</button>
+<p id="vozTxt"></p>
+</div>
+
+</section>
+
+<section id="taxista" class="page">
+
+<div class="card">
+<h2>🚖 Servicios para taxista</h2>
+
+<div class="statGrid">
+<div class="stat">
+<b id="stPend">0</b>
+<span>Pendientes</span>
+</div>
+
+<div class="stat">
+<b id="stAcept">0</b>
+<span>Aceptados</span>
+</div>
+
+<div class="stat">
+<b id="stFin">0</b>
+<span>Finalizados</span>
+</div>
+</div>
+</div>
+
+<div id="listaTaxista"></div>
+
+</section>
+
+<section id="central" class="page">
+
+<div class="card">
+<h2>🤖 Central IA</h2>
+
+<label>Dicta o escribe un servicio</label>
+<textarea id="iaTexto" placeholder="Ej: Cliente Pedro desde Mahón al aeropuerto 16,80 visa"></textarea>
+
+<div class="row">
+<button class="btnBlue" onclick="vozIA()">🎙️ Dictar</button>
+<button class="btn" onclick="crearDesdeIA()">Crear con IA</button>
+</div>
+
+<p>La IA detecta origen, destino, importe y pago de la frase.</p>
+</div>
+
+<div class="card">
+<h2>📞 Simulación llamada</h2>
+<button class="btnBlue" onclick="simularLlamada()">Simular llamada entrante</button>
+<p id="llamadaTxt"></p>
+</div>
+
+</section><section id="panel" class="page">
+
+<div class="card">
+
+<h2>📊 Panel del día</h2>
+
+<div class="totalBox">
+<div>Total facturado hoy</div>
+<div class="bigMoney" id="totalHoy">0.00 €</div>
+</div>
+
+<br>
+
+<div class="statGrid">
+
+<div class="stat">
+<b id="tEfectivo">0€</b>
+<span>Efectivo</span>
+</div>
+
+<div class="stat">
+<b id="tVisa">0€</b>
+<span>Visa</span>
+</div>
+
+<div class="stat">
+<b id="tBizum">0€</b>
+<span>Bizum</span>
+</div>
+
+</div>
+
+<br>
+
+<div class="statGrid">
+
+<div class="stat">
+<b id="tBonoweb">0€</b>
+<span>Bonoweb</span>
+</div>
+
+<div class="stat">
+<b id="tVueling">0€</b>
+<span>Vueling</span>
+</div>
+
+<div class="stat">
+<b id="tServicios">0</b>
+<span>Servicios</span>
+</div>
+
+</div>
+
+</div>
+
+<div class="card">
+
+<h2>💰 Reparto automático</h2>
+
+<div class="statGrid">
+
+<div class="stat">
+<b id="trabajador40">0€</b>
+<span>40% trabajador</span>
+</div>
+
+<div class="stat">
+<b id="propietario60">0€</b>
+<span>60% propietario</span>
+</div>
+
+<div class="stat">
+<b id="gastos">0€</b>
+<span>Gastos</span>
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+<section id="historial" class="page">
+
+<div class="card">
+<h2>📚 Historial de servicios</h2>
+
+<select id="filtroEstado" onchange="renderServicios()">
+
+<option value="todos">Todos</option>
+<option value="pendiente">Pendientes</option>
+<option value="aceptado">Aceptados</option>
+<option value="recogido">Recogidos</option>
+<option value="finalizado">Finalizados</option>
+
+</select>
+
+</div>
+
+<div id="listaHistorial"></div>
+
+</section>
+
+<script>
+
+let servicios =
+JSON.parse(localStorage.getItem("taxiMenorcaV6") || "[]");
+
+function guardar(){
+localStorage.setItem(
+"taxiMenorcaV6",
+JSON.stringify(servicios)
+);
+}
+
+function showPage(id,btn){
+
+document.querySelectorAll(".page")
+.forEach(p=>p.classList.remove("active"));
+
+document.getElementById(id)
+.classList.add("active");
+
+document.querySelectorAll(".tabs button")
+.forEach(b=>b.classList.remove("active"));
+
+btn.classList.add("active");
+}
+
+function hablar(texto){
+
+if("speechSynthesis" in window){
+
+let voz =
+new SpeechSynthesisUtterance(texto);
+
+voz.lang="es-ES";
+
+speechSynthesis.speak(voz);
+
+}
+
+}
+
+function crearSolicitud(){
+
+let nombre =
+document.getElementById("cNombre").value;
+
+let origen =
+document.getElementById("cOrigen").value;
+
+let destino =
+document.getElementById("cDestino").value;
+
+let pago =
+document.getElementById("cPago").value;
+
+let importe =
+parseFloat(
+document.getElementById("cImporte").value
+) || 0;
+
+if(!origen || !destino){
+alert("Completa origen y destino");
+return;
+}
+
+let servicio = {
+
+id:Date.now(),
+
+hora:new Date().toLocaleTimeString(),
+
+fecha:new Date().toLocaleDateString(),
+
+nombre:nombre,
+
+origen:origen,
+
+destino:destino,
+
+pago:pago,
+
+importe:importe,
+
+estado:"pendiente"
+
+};
+
+servicios.unshift(servicio);
+
+guardar();
+
+renderServicios();
+
+hablar("Servicio añadido correctamente");
+
+}
+
+function usarUbicacion(){
+
+navigator.geolocation.getCurrentPosition(pos=>{
+
+document.getElementById("cOrigen").value =
+pos.coords.latitude.toFixed(5)+
+","+
+pos.coords.longitude.toFixed(5);
+
+});
+
+}function crearDesdeIA(){
+
+let texto = document.getElementById("iaTexto").value.toLowerCase();
+
+if(!texto){
+alert("Escribe o dicta un servicio");
+return;
+}
+
+let pago = "Efectivo";
+
+if(texto.includes("visa") || texto.includes("tarjeta")) pago = "Visa";
+if(texto.includes("bizum")) pago = "Bizum";
+if(texto.includes("bonoweb")) pago = "Bonoweb";
+if(texto.includes("vueling") || texto.includes("vuelo")) pago = "Bono Vueling";
+
+let importe = 0;
+let matchImporte = texto.match(/(\d+[,.]?\d*)/);
+
+if(matchImporte){
+importe = parseFloat(matchImporte[1].replace(",","."));
+}
+
+let origen = "";
+let destino = "";
+
+let matchRuta = texto.match(/desde (.*?) hasta (.*?)( \d| con| visa| bizum| efectivo| bonoweb| vueling|$)/);
+
+if(matchRuta){
+origen = matchRuta[1].trim();
+destino = matchRuta[2].trim();
+}
+
+if(!origen || !destino){
+alert("No detecté bien el origen y destino. Di: desde X hasta Y");
+return;
+}
+
+servicios.unshift({
+id:Date.now(),
+hora:new Date().toLocaleTimeString(),
+fecha:new Date().toLocaleDateString(),
+nombre:"Cliente",
+origen:origen,
+destino:destino,
+pago:pago,
+importe:importe,
+estado:"pendiente"
+});
+
+guardar();
+renderServicios();
+hablar("Servicio añadido de " + origen + " a " + destino);
+document.getElementById("iaTexto").value = "";
+
+}
+
+function vozIA(){
+escuchar(texto=>{
+document.getElementById("iaTexto").value = texto;
+crearDesdeIA();
+});
+}
+
+function vozCliente(){
+escuchar(texto=>{
+document.getElementById("vozTxt").innerText = texto;
+document.getElementById("iaTexto").value = texto;
+let datos = texto.toLowerCase();
+
+let matchRuta = datos.match(/desde (.*?) hasta (.*?)( \d| con| visa| bizum| efectivo| bonoweb| vueling|$)/);
+
+if(matchRuta){
+document.getElementById("cOrigen").value = matchRuta[1].trim();
+document.getElementById("cDestino").value = matchRuta[2].trim();
+}
+
+let matchImporte = datos.match(/(\d+[,.]?\d*)/);
+
+if(matchImporte){
+document.getElementById("cImporte").value = matchImporte[1].replace(",",".");
+}
+
+if(datos.includes("visa") || datos.includes("tarjeta")){
+document.getElementById("cPago").value = "Visa";
+}
+if(datos.includes("bizum")){
+document.getElementById("cPago").value = "Bizum";
+}
+if(datos.includes("bonoweb")){
+document.getElementById("cPago").value = "Bonoweb";
+}
+if(datos.includes("vueling") || datos.includes("vuelo")){
+document.getElementById("cPago").value = "Bono Vueling";
+}
+
+hablar("Solicitud rellenada");
+});
+}
+
+function escuchar(callback){
+
+let SpeechRecognition =
+window.SpeechRecognition || window.webkitSpeechRecognition;
+
+if(!SpeechRecognition){
+alert("Tu navegador no permite reconocimiento de voz");
+return;
+}
+
+let rec = new SpeechRecognition();
+rec.lang = "es-ES";
+rec.start();
+
+rec.onresult = function(event){
+let texto = event.results[0][0].transcript;
+callback(texto);
+};
+
+}
+
+function simularLlamada(){
+
+let llamadas = [
+"Cliente desde Fornells hasta Mercadal 18 euros visa",
+"Cliente desde Son Parc hasta Mahón 32 euros efectivo",
+"Cliente desde Arenal hasta Alaior 27 euros bizum"
+];
+
+let llamada = llamadas[Math.floor(Math.random()*llamadas.length)];
+
+document.getElementById("llamadaTxt").innerText = llamada;
+document.getElementById("iaTexto").value = llamada;
+
+hablar("Llamada entrante preparada");
+
+}
+
+function cambiarEstado(id,estado){
+
+servicios = servicios.map(s=>{
+if(s.id === id){
+s.estado = estado;
+}
+return s;
+});
+
+guardar();
+renderServicios();
+
+if(estado==="aceptado") hablar("Servicio aceptado");
+if(estado==="recogido") hablar("Cliente recogido");
+if(estado==="finalizado") hablar("Servicio finalizado");
+
+}
+
+function borrarServicio(id){
+
+if(confirm("¿Borrar este servicio?")){
+
+servicios = servicios.filter(s=>s.id!==id);
+guardar();
+renderServicios();
+
+}
+
+}
+
+function abrirGoogleMaps(origen,destino){
+
+let url =
+"https://www.google.com/maps/dir/?api=1&origin="
++ encodeURIComponent(origen)
++ "&destination="
++ encodeURIComponent(destino)
++ "&travelmode=driving";
+
+window.open(url,"_blank");
+
+}
+
+function abrirAppleMaps(origen,destino){
+
+let url =
+"https://maps.apple.com/?saddr="
++ encodeURIComponent(origen)
++ "&daddr="
++ encodeURIComponent(destino);
+
+window.open(url,"_blank");
+
+}
+
+function servicioHTML(s){
+
+let clase = "pending";
+
+if(s.estado==="aceptado") clase="accepted";
+if(s.estado==="recogido") clase="pickup";
+if(s.estado==="finalizado") clase="done";
+
+return `
+<div class="service">
+
+<b>${s.origen} → ${s.destino}</b>
+
+<br>
+
+<span class="badge ${clase}">
+${s.estado.toUpperCase()}
+</span>
+
+<span class="badge">${s.pago}</span>
+<span class="badge">${s.importe.toFixed(2)} €</span>
+
+<p>${s.fecha} · ${s.hora}</p>
+
+<div class="row">
+<button class="btnBlue" onclick="abrirGoogleMaps('${s.origen}','${s.destino}')">
+Google Maps
+</button>
+
+<button class="btnBlue" onclick="abrirAppleMaps('${s.origen}','${s.destino}')">
+Apple Maps
+</button>
+</div>
+
+<br>
+
+<div class="row">
+<button class="btnBlue" onclick="cambiarEstado(${s.id},'aceptado')">
+Aceptar
+</button>
+
+<button class="btnGreen" onclick="cambiarEstado(${s.id},'recogido')">
+Recogido
+</button>
+</div>
+
+<br>
+
+<div class="row">
+<button class="btn" onclick="cambiarEstado(${s.id},'finalizado')">
+Finalizar
+</button>
+
+<button class="btnRed" onclick="borrarServicio(${s.id})">
+Borrar
+</button>
+</div>
+
+</div>
+`;
+
+}
+
+function renderServicios(){
+
+let pendientes = servicios.filter(s=>s.estado==="pendiente").length;
+let aceptados = servicios.filter(s=>s.estado==="aceptado" || s.estado==="recogido").length;
+let finalizados = servicios.filter(s=>s.estado==="finalizado").length;
+
+document.getElementById("stPend").innerText = pendientes;
+document.getElementById("stAcept").innerText = aceptados;
+document.getElementById("stFin").innerText = finalizados;
+
+document.getElementById("listaTaxista").innerHTML =
+servicios
+.filter(s=>s.estado!=="finalizado")
+.map(servicioHTML)
+.join("") || "<div class='card'>No hay servicios pendientes</div>";
+
+let filtro = document.getElementById("filtroEstado").value;
+
+let lista =
+filtro==="todos"
+? servicios
+: servicios.filter(s=>s.estado===filtro);
+
+document.getElementById("listaHistorial").innerHTML =
+lista.map(servicioHTML).join("") || "<div class='card'>No hay historial</div>";
+
+let hoy = new Date().toLocaleDateString();
+
+let hoyServicios =
+servicios.filter(s=>s.fecha===hoy && s.estado==="finalizado");
+
+let total =
+hoyServicios.reduce((sum,s)=>sum+s.importe,0);
+
+document.getElementById("totalHoy").innerText = total.toFixed(2)+" €";
+document.getElementById("trabajador40").innerText = (total*0.40).toFixed(2)+" €";
+document.getElementById("propietario60").innerText = (total*0.60).toFixed(2)+" €";
+document.getElementById("tServicios").innerText = hoyServicios.length;
+
+function totalPago(pago){
+return hoyServicios
+.filter(s=>s.pago===pago)
+.reduce((sum,s)=>sum+s.importe,0)
+.toFixed(2)+" €";
+}
+
+document.getElementById("tEfectivo").innerText = totalPago("Efectivo");
+document.getElementById("tVisa").innerText = totalPago("Visa");
+document.getElementById("tBizum").innerText = totalPago("Bizum");
+document.getElementById("tBonoweb").innerText = totalPago("Bonoweb");
+document.getElementById("tVueling").innerText = totalPago("Bono Vueling");
+
+}
+
+renderServicios();
+
+</script>
+
+</body>
+</html>
