@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FF PC Trainer</title>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Arial, sans-serif;
+  background:#0b1020;
+  color:white;
+}
+header{
+  padding:20px;
+  text-align:center;
+  background:linear-gradient(135deg,#f97316,#ef4444);
+}
+header h1{margin:0;font-size:28px}
+header p{margin:6px 0 0;font-weight:bold}
+.tabs{
+  display:flex;
+  background:#111827;
+  position:sticky;
+  top:0;
+  z-index:10;
+}
+.tabs button{
+  flex:1;
+  padding:14px;
+  border:0;
+  background:#111827;
+  color:#cbd5e1;
+  font-weight:bold;
+}
+.tabs button.active{
+  background:#f97316;
+  color:#111;
+}
+.page{display:none;padding:18px}
+.page.active{display:block}
+.card{
+  background:#111827;
+  border:1px solid #334155;
+  border-radius:16px;
+  padding:16px;
+  margin-bottom:16px;
+}
+h2{margin-top:0;color:#facc15}
+input,select,textarea{
+  width:100%;
+  padding:12px;
+  margin:8px 0;
+  border-radius:10px;
+  border:0;
+  font-size:16px;
+}
+button.main{
+  width:100%;
+  padding:14px;
+  border:0;
+  border-radius:12px;
+  background:#f97316;
+  color:#111;
+  font-weight:bold;
+  font-size:16px;
+  margin-top:8px;
+}
+button.secondary{
+  width:100%;
+  padding:12px;
+  border:1px solid #475569;
+  border-radius:12px;
+  background:#020617;
+  color:white;
+  font-weight:bold;
+  margin-top:8px;
+}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:10px;
+}
+.stat{
+  background:#020617;
+  border-radius:12px;
+  padding:12px;
+  text-align:center;
+}
+.stat b{
+  display:block;
+  font-size:22px;
+  color:#22c55e;
+}
+#arena{
+  position:relative;
+  height:420px;
+  background:#020617;
+  border:2px solid #334155;
+  border-radius:18px;
+  overflow:hidden;
+  touch-action:none;
+}
+.target{
+  position:absolute;
+  width:46px;
+  height:46px;
+  border-radius:50%;
+  background:#ef4444;
+  border:4px solid #facc15;
+  box-shadow:0 0 20px #ef4444;
+  cursor:pointer;
+}
+.target.head{
+  width:28px;
+  height:28px;
+  background:#facc15;
+  border:3px solid white;
+}
+.small{font-size:13px;color:#94a3b8}
+.good{color:#22c55e;font-weight:bold}
+.bad{color:#ef4444;font-weight:bold}
+table{
+  width:100%;
+  border-collapse:collapse;
+}
+td,th{
+  border-bottom:1px solid #334155;
+  padding:10px;
+  text-align:left;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🎯 FF PC Trainer</h1>
+  <p>Entrena aim, reflejos, tracking y sensibilidad en PC</p>
+</header>
+
+<div class="tabs">
+  <button class="active" onclick="showPage('home',this)">Inicio</button>
+  <button onclick="showPage('aim',this)">Aim</button>
+  <button onclick="showPage('sens',this)">Sensi</button>
+  <button onclick="showPage('routine',this)">Rutina</button>
+</div>
+
+<section id="home" class="page active">
+  <div class="card">
+    <h2>Tu progreso</h2>
+    <div class="grid">
+      <div class="stat">Mejor score<b id="bestScore">0</b></div>
+      <div class="stat">Último score<b id="lastScore">0</b></div>
+      <div class="stat">Aciertos<b id="totalHits">0</b></div>
+      <div class="stat">Partidas<b id="games">0</b></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Consejo rápido</h2>
+    <p id="tip">Calienta 5 minutos antes de jugar ranked. Mejor poco y constante que mucho un solo día.</p>
+    <button class="main" onclick="newTip()">Nuevo consejo</button>
+  </div>
+
+  <div class="card">
+    <h2>Notas de entrenamiento</h2>
+    <textarea id="notes" rows="6" placeholder="Ejemplo: hoy fallé mucho con escopeta, bajar un poco sensibilidad..."></textarea>
+    <button class="main" onclick="saveNotes()">Guardar notas</button>
+  </div>
+</section>
+
+<section id="aim" class="page">
+  <div class="card">
+    <h2>Entrenador de Aim</h2>
+    <select id="mode">
+      <option value="normal">Aim normal</option>
+      <option value="head">Solo cabeza</option>
+      <option value="fast">Reflejos rápidos</option>
+    </select>
+    <div class="grid">
+      <div class="stat">Tiempo<b id="time">30</b></div>
+      <div class="stat">Score<b id="score">0</b></div>
+    </div>
+    <button class="main" onclick="startGame()">Empezar</button>
+    <button class="secondary" onclick="stopGame()">Parar</button>
+  </div>
+
+  <div id="arena"></div>
+</section>
+
+<section id="sens" class="page">
+  <div class="card">
+    <h2>Calculadora de sensibilidad PC</h2>
+    <label>DPI del ratón</label>
+    <input id="dpi" type="number" placeholder="Ejemplo: 800">
+
+    <label>Estilo</label>
+    <select id="style">
+      <option value="balanced">Equilibrado</option>
+      <option value="rush">Rusher agresivo</option>
+      <option value="precise">Precisión / headshot</option>
+    </select>
+
+    <button class="main" onclick="calcSens()">Calcular sensibilidad</button>
+  </div>
+
+  <div class="card">
+    <h2>Resultado recomendado</h2>
+    <table>
+      <tr><th>Ajuste</th><th>Valor</th></tr>
+      <tr><td>General</td><td id="sGeneral">-</td></tr>
+      <tr><td>Punto rojo</td><td id="sRed">-</td></tr>
+      <tr><td>Mira x2</td><td id="s2">-</td></tr>
+      <tr><td>Mira x4</td><td id="s4">-</td></tr>
+      <tr><td>Francotirador</td><td id="sSniper">-</td></tr>
+    </table>
+    <p class="small">Consejo: prueba estos valores 2 partidas y ajusta de 2 en 2.</p>
+  </div>
+</section>
+
+<section id="routine" class="page">
+  <div class="card">
+    <h2>Rutina diaria para PC</h2>
+    <table>
+      <tr><th>Tiempo</th><th>Ejercicio</th></tr>
+      <tr><td>5 min</td><td>Calentar muñeca y tracking suave</td></tr>
+      <tr><td>10 min</td><td>Modo solo cabeza en esta app</td></tr>
+      <tr><td>10 min</td><td>Free Fire: entrenamiento con MP40 / XM8</td></tr>
+      <tr><td>10 min</td><td>Rush con paredes gloo</td></tr>
+      <tr><td>5 min</td><td>Revisar fallos y apuntar notas</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Checklist antes de ranked</h2>
+    <p>✅ Sensibilidad estable</p>
+    <p>✅ Ratón cómodo</p>
+    <p>✅ FPS estables</p>
+    <p>✅ No cambiar HUD cada día</p>
+    <p>✅ Jugar calmado, no disparar antes de apuntar</p>
+  </div>
+</section>
+
+<script>
+let score=0;
+let hits=0;
+let timeLeft=30;
+let timer=null;
+let target=null;
+let playing=false;
+
+const tips=[
+  "No cambies la sensibilidad cada partida. Dale tiempo a la memoria muscular.",
+  "Para levantar mira a la cabeza, arrastra suave hacia arriba al disparar.",
+  "Entrena más tracking que solo flicks. En PC se nota mucho.",
+  "Con escopeta, espera medio segundo más antes de disparar.",
+  "Si fallas mucho, baja un poco la sensibilidad general.",
+  "Juega con la espalda recta y el brazo relajado.",
+  "Mejor 30 minutos buenos que 3 horas jugando nervioso."
+];
+
+function showPage(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+
+function loadStats(){
+  bestScore.textContent=localStorage.getItem("bestScore")||0;
+  lastScore.textContent=localStorage.getItem("lastScore")||0;
+  totalHits.textContent=localStorage.getItem("totalHits")||0;
+  games.textContent=localStorage.getItem("games")||0;
+  notes.value=localStorage.getItem("ffNotes")||"";
+}
+loadStats();
+
+function saveNotes(){
+  localStorage.setItem("ffNotes",notes.value);
+  alert("Notas guardadas ✅");
+}
+
+function newTip(){
+  tip.textContent=tips[Math.floor(Math.random()*tips.length)];
+}
+
+function startGame(){
+  stopGame();
+  playing=true;
+  score=0;
+  hits=0;
+  timeLeft=30;
+  scoreEl();
+  document.getElementById("time").textContent=timeLeft;
+  spawnTarget();
+
+  timer=setInterval(()=>{
+    timeLeft--;
+    document.getElementById("time").textContent=timeLeft;
+    if(timeLeft<=0) finishGame();
+  },1000);
+}
+
+function stopGame(){
+  playing=false;
+  clearInterval(timer);
+  if(target) target.remove();
+  target=null;
+}
+
+function finishGame(){
+  stopGame();
+
+  let best=parseInt(localStorage.getItem("bestScore")||0);
+  if(score>best)localStorage.setItem("bestScore",score);
+
+  localStorage.setItem("lastScore",score);
+  localStorage.setItem("totalHits",parseInt(localStorage.getItem("totalHits")||0)+hits);
+  localStorage.setItem("games",parseInt(localStorage.getItem("games")||0)+1);
+
+  loadStats();
+  alert("Entreno terminado 🎯 Score: "+score);
+}
+
+function scoreEl(){
+  document.getElementById("score").textContent=score;
+}
+
+function spawnTarget(){
+  if(!playing)return;
+  const arena=document.getElementById("arena");
+  if(target)target.remove();
+
+  target=document.createElement("div");
+  target.className="target";
+
+  const mode=document.getElementById("mode").value;
+  if(mode==="head")target.classList.add("head");
+
+  const size=mode==="head"?28:46;
+  const maxX=arena.clientWidth-size;
+  const maxY=arena.clientHeight-size;
+
+  target.style.left=Math.random()*maxX+"px";
+  target.style.top=Math.random()*maxY+"px";
+
+  target.onclick=()=>{
+    hits++;
+    if(mode==="head")score+=15;
+    else if(mode==="fast")score+=12;
+    else score+=10;
+    scoreEl();
+    spawnTarget();
+  };
+
+  arena.appendChild(target);
+
+  if(mode==="fast"){
+    setTimeout(()=>{
+      if(playing && target) spawnTarget();
+    },750);
+  }
+}
+
+function calcSens(){
+  const dpiVal=parseInt(document.getElementById("dpi").value||800);
+  const style=document.getElementById("style").value;
+
+  let base=100;
+
+  if(dpiVal<=600)base=120;
+  else if(dpiVal<=800)base=100;
+  else if(dpiVal<=1200)base=85;
+  else base=70;
+
+  let general=base, red=base-5, x2=base-10, x4=base-18, sniper=55;
+
+  if(style==="rush"){
+    general+=10; red+=8; x2+=6; x4+=4; sniper+=5;
+  }
+
+  if(style==="precise"){
+    general-=8; red-=6; x2-=6; x4-=4; sniper-=5;
+  }
+
+  function clamp(n){return Math.max(1,Math.min(200,Math.round(n)));}
+
+  sGeneral.textContent=clamp(general);
+  sRed.textContent=clamp(red);
+  s2.textContent=clamp(x2);
+  s4.textContent=clamp(x4);
+  sSniper.textContent=clamp(sniper);
+
+  localStorage.setItem("ffDpi",dpiVal);
+}
+
+document.getElementById("dpi").value=localStorage.getItem("ffDpi")||800;
+</script>
+
+</body>
+</html>
