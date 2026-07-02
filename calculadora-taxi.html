@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora Taxi</title>
+<style>
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  background:#0b1020;
+  color:white;
+}
+header{
+  padding:20px;
+  text-align:center;
+  background:linear-gradient(135deg,#facc15,#f97316);
+  color:#111;
+}
+main{padding:18px;max-width:520px;margin:auto}
+.card{
+  background:#111827;
+  border:1px solid #334155;
+  border-radius:18px;
+  padding:16px;
+  margin-bottom:15px;
+}
+label{font-weight:800;display:block;margin-top:12px}
+input{
+  width:100%;
+  padding:14px;
+  border-radius:12px;
+  border:0;
+  margin-top:6px;
+  font-size:16px;
+}
+.row{
+  display:flex;
+  gap:10px;
+}
+.row .card{flex:1}
+.check{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin:12px 0;
+  font-weight:800;
+}
+.check input{width:22px;height:22px}
+button{
+  width:100%;
+  padding:15px;
+  border:0;
+  border-radius:14px;
+  font-size:17px;
+  font-weight:900;
+  margin-top:10px;
+}
+.primary{background:#facc15;color:#111}
+.secondary{background:#22c55e;color:#052e16}
+.danger{background:#334155;color:white}
+.total{
+  font-size:38px;
+  font-weight:1000;
+  color:#facc15;
+  text-align:center;
+}
+.small{color:#cbd5e1;font-size:14px;line-height:1.5}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🚖 Calculadora Taxi</h1>
+  <p>Tarifa con primer km incluido</p>
+</header>
+
+<main>
+
+<div class="card">
+  <label>📍 Origen</label>
+  <input id="origen" placeholder="Ej: Fornells">
+
+  <label>🏁 Destino</label>
+  <input id="destino" placeholder="Ej: Aeropuerto Menorca">
+
+  <button class="secondary" onclick="abrirMaps()">🗺️ Abrir ruta en Google Maps</button>
+</div>
+
+<div class="card">
+  <label>📏 Kilómetros de la ruta</label>
+  <input id="km" type="number" step="0.01" placeholder="Ej: 28.5" oninput="calcular()">
+
+  <div class="check">
+    <input type="checkbox" id="llamada" onchange="calcular()">
+    <span>📞 Suplemento llamada +1,18 €</span>
+  </div>
+
+  <div class="check">
+    <input type="checkbox" id="aeropuerto" onchange="calcular()">
+    <span>✈️ Suplemento aeropuerto +2,86 €</span>
+  </div>
+
+  <div class="check">
+    <input type="checkbox" id="puerto" onchange="calcular()">
+    <span>🚢 Suplemento puerto +2,86 €</span>
+  </div>
+
+  <button class="primary" onclick="calcular()">💶 Calcular precio</button>
+</div>
+
+<div class="card">
+  <p class="small">Precio estimado:</p>
+  <div class="total" id="total">0,00 €</div>
+  <p class="small" id="detalle"></p>
+</div>
+
+<button class="danger" onclick="limpiar()">🗑️ Limpiar</button>
+
+</main>
+
+<script>
+const BAJADA = 3.86;
+const KM_INCLUIDO = 1;
+const PRECIO_KM = 1.10;
+const SUP_LLAMADA = 1.18;
+const SUP_AEROPUERTO = 2.86;
+const SUP_PUERTO = 2.86;
+
+function euros(num){
+  return num.toFixed(2).replace(".", ",") + " €";
+}
+
+function calcular(){
+  let km = parseFloat(document.getElementById("km").value) || 0;
+
+  let kmCobrables = Math.max(0, km - KM_INCLUIDO);
+  let precioKm = kmCobrables * PRECIO_KM;
+
+  let total = BAJADA + precioKm;
+  let extras = [];
+
+  if(document.getElementById("llamada").checked){
+    total += SUP_LLAMADA;
+    extras.push("llamada");
+  }
+
+  if(document.getElementById("aeropuerto").checked){
+    total += SUP_AEROPUERTO;
+    extras.push("aeropuerto");
+  }
+
+  if(document.getElementById("puerto").checked){
+    total += SUP_PUERTO;
+    extras.push("puerto");
+  }
+
+  document.getElementById("total").innerText = euros(total);
+
+  document.getElementById("detalle").innerHTML =
+    "Bajada de bandera: " + euros(BAJADA) + "<br>" +
+    "Primer km incluido: sí<br>" +
+    "Km cobrables: " + kmCobrables.toFixed(2).replace(".", ",") + " km<br>" +
+    "Importe por km: " + euros(precioKm) + "<br>" +
+    "Suplementos: " + (extras.length ? extras.join(", ") : "ninguno");
+}
+
+function abrirMaps(){
+  let origen = document.getElementById("origen").value.trim();
+  let destino = document.getElementById("destino").value.trim();
+
+  if(!origen || !destino){
+    alert("Pon origen y destino primero");
+    return;
+  }
+
+  let url = "https://www.google.com/maps/dir/?api=1&origin=" +
+    encodeURIComponent(origen) +
+    "&destination=" +
+    encodeURIComponent(destino) +
+    "&travelmode=driving";
+
+  window.open(url, "_blank");
+}
+
+function limpiar(){
+  document.getElementById("origen").value = "";
+  document.getElementById("destino").value = "";
+  document.getElementById("km").value = "";
+  document.getElementById("llamada").checked = false;
+  document.getElementById("aeropuerto").checked = false;
+  document.getElementById("puerto").checked = false;
+  calcular();
+}
+
+calcular();
+</script>
+
+</body>
+</html>
