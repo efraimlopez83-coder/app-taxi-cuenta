@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Taxi IA Navigator PRO</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#070b16;color:white}
+header{padding:22px;text-align:center;background:linear-gradient(135deg,#facc15,#f97316);color:#111}
+header h1{margin:0;font-size:25px}
+header p{margin:6px 0 0;font-weight:800}
+main{padding:16px;max-width:560px;margin:auto}
+.card{background:#111827;border:1px solid #334155;border-radius:18px;padding:16px;margin-bottom:14px}
+label{display:block;font-weight:900;margin-top:12px}
+input,select{width:100%;padding:14px;border-radius:13px;border:0;margin-top:6px;font-size:16px}
+button{width:100%;padding:15px;border:0;border-radius:15px;font-size:17px;font-weight:1000;margin-top:10px}
+.gold{background:#facc15;color:#111}
+.green{background:#22c55e;color:#052e16}
+.blue{background:#38bdf8;color:#082f49}
+.red{background:#ef4444;color:white}
+.dark{background:#334155;color:white}
+.total{font-size:40px;text-align:center;color:#facc15;font-weight:1000}
+.small{color:#cbd5e1;font-size:14px;line-height:1.5}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.check{display:flex;align-items:center;gap:10px;margin:10px 0;font-weight:800}
+.check input{width:22px;height:22px}
+.tabs{display:flex;position:sticky;bottom:0;background:#020617;border-top:1px solid #334155}
+.tabs button{border-radius:0;margin:0;background:#020617;color:#94a3b8;font-size:14px}
+.tabs button.active{background:#facc15;color:#111}
+.page{display:none}
+.page.active{display:block}
+.service{border-bottom:1px solid #334155;padding:10px 0}
+.badge{display:inline-block;background:#facc15;color:#111;padding:5px 9px;border-radius:999px;font-weight:900}
+</style>
+</head>
+<body>
+
+<header>
+<h1>🚖 Taxi IA Navigator PRO</h1>
+<p>Calculadora + Maps + servicio + historial</p>
+</header>
+
+<main>
+
+<section id="app" class="page active">
+
+<div class="card">
+<button class="gold" onclick="hablar()">🎤 Hablar servicio</button>
+<p class="small">Ejemplo: “De Fornells al aeropuerto con llamada”</p>
+
+<label>📍 Origen</label>
+<input id="origen" placeholder="Ej: Fornells">
+
+<label>🏁 Destino</label>
+<input id="destino" placeholder="Ej: Aeropuerto Menorca">
+
+<div class="grid">
+<button class="dark" onclick="setDestino('Aeropuerto Menorca')">✈️ Aeropuerto</button>
+<button class="dark" onclick="setDestino('Puerto Mahón')">🚢 Puerto Mahón</button>
+<button class="dark" onclick="setOrigen('Fornells')">Fornells</button>
+<button class="dark" onclick="setOrigen('Es Mercadal')">Mercadal</button>
+</div>
+</div>
+
+<div class="card">
+<label>📏 Kilómetros de Maps</label>
+<input id="km" type="number" step="0.01" placeholder="Ej: 28.5" oninput="calcular()">
+
+<div class="check"><input type="checkbox" id="llamada" onchange="calcular()"><span>📞 Llamada +1,18 €</span></div>
+<div class="check"><input type="checkbox" id="aeropuerto" onchange="calcular()"><span>✈️ Aeropuerto +2,86 €</span></div>
+<div class="check"><input type="checkbox" id="puerto" onchange="calcular()"><span>🚢 Puerto +2,86 €</span></div>
+
+<button class="blue" onclick="abrirMaps()">🗺️ Abrir ruta en Google Maps</button>
+<button class="gold" onclick="calcular()">💶 Calcular precio</button>
+</div>
+
+<div class="card">
+<p class="small">Precio estimado</p>
+<div class="total" id="total">0,00 €</div>
+<p class="small" id="detalle"></p>
+<button class="green" onclick="iniciarServicio()">▶️ INICIAR SERVICIO</button>
+<button class="red" onclick="finalizarServicio()">✅ FINALIZAR SERVICIO</button>
+</div>
+
+</section>
+
+<section id="historial" class="page">
+<div class="card">
+<h2>📋 Historial</h2>
+<div id="lista"></div>
+<button class="red" onclick="borrarHistorial()">🗑️ Borrar historial</button>
+</div>
+</section>
+
+<section id="resumen" class="page">
+<div class="card">
+<h2>📊 Resumen de hoy</h2>
+<p id="resumenHoy" class="small"></p>
+</div>
+</section>
+
+</main>
+
+<div class="tabs">
+<button class="active" onclick="page('app',this)">🚖 Servicio</button>
+<button onclick="page('historial',this)">📋 Historial</button>
+<button onclick="page('resumen',this)">📊 Resumen</button>
+</div>
+
+<script>
+const BAJADA = 3.86;
+const KM_INCLUIDO = 1;
+const PRECIO_KM = 1.10;
+const SUP_LLAMADA = 1.18;
+const SUP_AEROPUERTO = 2.86;
+const SUP_PUERTO = 2.86;
+
+let servicioActivo = null;
+
+function euros(n){
+  return n.toFixed(2).replace(".", ",") + " €";
+}
+
+function calcular(){
+  let km = parseFloat(document.getElementById("km").value) || 0;
+  let kmCobrables = Math.max(0, km - KM_INCLUIDO);
+  let total = BAJADA + (kmCobrables * PRECIO_KM);
+
+  if(llamada.checked) total += SUP_LLAMADA;
+  if(aeropuerto.checked) total += SUP_AEROPUERTO;
+  if(puerto.checked) total += SUP_PUERTO;
+
+  document.getElementById("total").innerText = euros(total);
+  document.getElementById("detalle").innerHTML =
+  "Bajada: " + euros(BAJADA) + "<br>" +
+  "Primer km incluido<br>" +
+  "Km cobrables: " + kmCobrables.toFixed(2).replace(".", ",") + " km<br>" +
+  "Precio/km: " + euros(PRECIO_KM);
+
+  return total;
+}
+
+function abrirMaps(){
+  let o = origen.value.trim();
+  let d = destino.value.trim();
+  if(!o || !d){ alert("Pon origen y destino"); return; }
+
+  let url = "https://www.google.com/maps/dir/?api=1&origin=" +
+  encodeURIComponent(o) + "&destination=" + encodeURIComponent(d) +
+  "&travelmode=driving";
+
+  window.open(url,"_blank");
+}
+
+function iniciarServicio(){
+  calcular();
+  servicioActivo = {
+    origen: origen.value,
+    destino: destino.value,
+    km: parseFloat(km.value)||0,
+    precio: calcular(),
+    inicio: new Date().toLocaleTimeString(),
+    fecha: new Date().toLocaleDateString()
+  };
+  hablarTexto("Servicio iniciado");
+  abrirMaps();
+}
+
+function finalizarServicio(){
+  if(!servicioActivo){
+    alert("Primero inicia un servicio");
+    return;
+  }
+
+  let pago = prompt("Forma de pago: efectivo, visa, bizum, bonoweb, bono vuelo o factura", "efectivo");
+  servicioActivo.fin = new Date().toLocaleTimeString();
+  servicioActivo.pago = pago || "sin indicar";
+
+  let data = JSON.parse(localStorage.getItem("taxiNavigatorHistorial") || "[]");
+  data.unshift(servicioActivo);
+  localStorage.setItem("taxiNavigatorHistorial", JSON.stringify(data));
+
+  servicioActivo = null;
+  hablarTexto("Servicio finalizado y guardado");
+  cargarHistorial();
+  cargarResumen();
+}
+
+function cargarHistorial(){
+  let data = JSON.parse(localStorage.getItem("taxiNavigatorHistorial") || "[]");
+  let html = "";
+
+  data.forEach(s=>{
+    html += `<div class="service">
+      <b>${s.origen || "Origen"} → ${s.destino || "Destino"}</b><br>
+      <span class="badge">${euros(s.precio)}</span><br>
+      <span class="small">
+      ${s.fecha} | ${s.inicio} - ${s.fin}<br>
+      ${s.km} km | Pago: ${s.pago}
+      </span>
+    </div>`;
+  });
+
+  lista.innerHTML = html || "<p class='small'>Sin servicios guardados.</p>";
+}
+
+function cargarResumen(){
+  let data = JSON.parse(localStorage.getItem("taxiNavigatorHistorial") || "[]");
+  let hoy = new Date().toLocaleDateString();
+  let serviciosHoy = data.filter(s=>s.fecha === hoy);
+  let total = serviciosHoy.reduce((a,s)=>a+s.precio,0);
+  let kms = serviciosHoy.reduce((a,s)=>a+(s.km||0),0);
+
+  resumenHoy.innerHTML =
+  "Servicios: <b>" + serviciosHoy.length + "</b><br>" +
+  "Total: <b>" + euros(total) + "</b><br>" +
+  "Km: <b>" + kms.toFixed(2).replace(".", ",") + " km</b>";
+}
+
+function hablar(){
+  if(!("webkitSpeechRecognition" in window)){
+    alert("La voz puede no funcionar en este navegador. Prueba en Chrome o Safari actualizado.");
+    return;
+  }
+
+  let rec = new webkitSpeechRecognition();
+  rec.lang = "es-ES";
+  rec.start();
+
+  rec.onresult = e=>{
+    let texto = e.results[0][0].transcript.toLowerCase();
+
+    if(texto.includes(" llamada")) llamada.checked = true;
+    if(texto.includes("aeropuerto")) aeropuerto.checked = true;
+    if(texto.includes("puerto")) puerto.checked = true;
+
+    let limpio = texto.replace("con llamada","").replace("llamada","");
+
+    if(limpio.includes(" de ") && limpio.includes(" a ")){
+      let partes = limpio.split(" de ")[1].split(" a ");
+      origen.value = capital(partes[0]);
+      destino.value = capital(partes[1]);
+    }
+
+    calcular();
+    hablarTexto("Servicio entendido. Revisa los kilómetros de Maps.");
+  };
+}
+
+function hablarTexto(t){
+  let voz = new SpeechSynthesisUtterance(t);
+  voz.lang = "es-ES";
+  speechSynthesis.speak(voz);
+}
+
+function capital(t){
+  return t.trim().replace(/\b\w/g, l => l.toUpperCase());
+}
+
+function setOrigen(v){ origen.value = v; }
+function setDestino(v){
+  destino.value = v;
+  if(v.toLowerCase().includes("aeropuerto")) aeropuerto.checked = true;
+  if(v.toLowerCase().includes("puerto")) puerto.checked = true;
+  calcular();
+}
+
+function borrarHistorial(){
+  if(confirm("¿Borrar todo el historial?")){
+    localStorage.removeItem("taxiNavigatorHistorial");
+    cargarHistorial();
+    cargarResumen();
+  }
+}
+
+function page(id,btn){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  cargarHistorial();
+  cargarResumen();
+}
+
+calcular();
+cargarHistorial();
+cargarResumen();
+</script>
+
+</body>
+</html>
